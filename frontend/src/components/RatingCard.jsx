@@ -34,7 +34,10 @@ export default function RatingCard({ user, isLoading }) {
     return { title: 'Newbie', color: 'text-gray-400 bg-gray-950/10 border-gray-900/30' };
   };
 
-  const rankInfo = getRankInfo(user.rating);
+  const currentRating = Number(user?.rating || 0);
+  const maxRating = Number(user?.maxRating || user?.maxrating || 0);
+
+  const rankInfo = getRankInfo(currentRating);
 
   return (
     <div className="p-4 border border-gray-700 rounded bg-gray-900 text-white">
@@ -42,11 +45,11 @@ export default function RatingCard({ user, isLoading }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="p-3 border border-gray-800 rounded bg-gray-950">
           <span className="text-xs text-gray-500 block mb-1">Current Rating</span>
-          <span className="text-2xl font-black text-cyan-400">{user.rating}</span>
+          <span className="text-2xl font-black text-cyan-400">{currentRating || 'N/A'}</span>
         </div>
         <div className="p-3 border border-gray-800 rounded bg-gray-950">
           <span className="text-xs text-gray-500 block mb-1">Max Rating</span>
-          <span className="text-2xl font-black text-gray-300">{user.maxRating}</span>
+          <span className="text-2xl font-black text-gray-300">{maxRating || 'N/A'}</span>
         </div>
       </div>
       <div className="mt-4 flex items-center justify-between">

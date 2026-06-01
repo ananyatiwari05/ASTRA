@@ -1,55 +1,52 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ProfileCard from '../components/ProfileCard';
 import RatingCard from '../components/RatingCard';
 import RatingGraph from '../components/RatingGraph';
 import SubmissionTable from '../components/SubmissionTable';
-
-const DUMMY_USER = {
-  handle: 'tourist',
-  rating: 3850,
-  maxRating: 3850,
-};
-
-const DUMMY_SUBMISSIONS = [
-  { problem: 'Two Sum', verdict: 'OK' },
-  { problem: 'Add Two Numbers', verdict: 'WRONG ANSWER' },
-  { problem: 'Longest Substring Without Repeating Characters', verdict: 'OK' },
-];
-
-const DUMMY_HISTORY = [
-  { contestId: 1, rating: 1500, time: 1717000000 },
-  { contestId: 2, rating: 1750, time: 1718000000 },
-  { contestId: 3, rating: 2100, time: 1719000000 },
-  { contestId: 4, rating: 2600, time: 1720000000 },
-  { contestId: 5, rating: 3850, time: 1721000000 },
-];
+import LeetcodeStatsCard from '../components/LeetcodeStatsCard';
 
 export default function Dashboard() {
   const [handleInput, setHandleInput] = useState('tourist');
+  const [platform, setPlatform] = useState('codeforces');
   const [isLoading, setIsLoading] = useState(false);
-  const [userData, setUserData] = useState(DUMMY_USER);
-  const [submissionsData, setSubmissionsData] = useState(DUMMY_SUBMISSIONS);
-  const [ratingHistory, setRatingHistory] = useState(DUMMY_HISTORY);
+  const [userData, setUserData] = useState(null);
+  const [submissionsData, setSubmissionsData] = useState([]);
+  const [ratingHistory, setRatingHistory] = useState([]);
 
-  const handleImport = (e) => {
+  const handleImport = async (e) => {
     e.preventDefault();
+
     if (!handleInput.trim()) return;
 
-    setIsLoading(true);
+    const endpointMap = {
+      codeforces: 'cf',
+      leetcode: 'lc',
+      codechef: 'cc',
+    };
 
-    // Simulate API fetch delay
-    setTimeout(() => {
-      setUserData({
-        handle: handleInput.trim(),
-        rating: handleInput.trim().toLowerCase() === 'tourist' ? 3850 : 1620,
-        maxRating: handleInput.trim().toLowerCase() === 'tourist' ? 3850 : 1800,
-      });
-      setSubmissionsData(DUMMY_SUBMISSIONS);
-      setRatingHistory(DUMMY_HISTORY);
+    try {
+      setIsLoading(true);
+
+      const response = await axios.get(
+        `http://localhost:3000/${endpointMap[platform]}/${handleInput.trim()}`
+      );
+
+      console.log(response.data);
+
+      const data = response.data;
+
+      setUserData(data.user);
+      setSubmissionsData(data.submissions || []);
+      setRatingHistory(data.ratings || []);
+    } catch (error) {
+      console.error(error);
+      alert('User not found');
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -61,6 +58,7 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navbar */}
         <Navbar
+          platform={platform}
           handleInput={handleInput}
           onHandleInputChange={setHandleInput}
           onImportSubmit={handleImport}
@@ -69,15 +67,58 @@ export default function Dashboard() {
 
         {/* Main Content Area */}
         <main className="flex-1 p-6 space-y-6 overflow-y-auto bg-gray-950/20">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setPlatform('codeforces')}
+              className={`px-4 py-2 rounded ${
+                platform === 'codeforces' ? 'bg-cyan-600' : 'bg-gray-800'
+              }`}
+            >
+              Codeforces
+            </button>
+
+            <button
+              onClick={() => setPlatform('leetcode')}
+              className={`px-4 py-2 rounded ${
+                platform === 'leetcode' ? 'bg-cyan-600' : 'bg-gray-800'
+              }`}
+            >
+              LeetCode
+            </button>
+
+            <button
+              onClick={() => setPlatform('codechef')}
+              className={`px-4 py-2 rounded ${
+                platform === 'codechef' ? 'bg-cyan-600' : 'bg-gray-800'
+              }`}
+            >
+              CodeChef
+            </button>
+          </div>
           
           {/* Top Info Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ProfileCard user={userData} isLoading={isLoading} />
-            <RatingCard user={userData} isLoading={isLoading} />
+            {userData && (
+              <ProfileCard
+                user={userData}
+                platform={platform}
+                isLoading={isLoading}
+              />
+            )}
+
+            {platform === 'leetcode' ? (
+              <LeetcodeStatsCard user={userData} />
+            ) : (
+              userData && (
+                <RatingCard user={userData} isLoading={isLoading} />
+              )
+            )}
           </div>
 
           {/* Rating History Graph Placeholder */}
-          <RatingGraph history={ratingHistory} isLoading={isLoading} />
+          {platform !== 'leetcode' && (
+            <RatingGraph history={ratingHistory} isLoading={isLoading} />
+          )}
 
           {/* Recent Submissions Table */}
           <SubmissionTable submissions={submissionsData} isLoading={isLoading} />

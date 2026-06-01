@@ -39,16 +39,18 @@ export default function SubmissionTable({ submissions, isLoading }) {
           <tbody className="divide-y divide-gray-800">
             {submissions.map((sub, idx) => (
               <tr key={idx} className="hover:bg-gray-800/50">
-                <td className="p-3 font-medium">{sub.problem}</td>
+                <td className="p-3 font-medium">
+                  {sub?.problem?.name || sub?.problem || 'Unknown Problem'}
+                </td>
                 <td className="p-3">
                   <span
                     className={`px-2 py-1 rounded text-xs font-semibold ${
-                      sub.verdict === 'OK'
+                      sub?.verdict === 'OK'
                         ? 'bg-green-900/30 text-green-400 border border-green-850'
                         : 'bg-red-900/30 text-red-400 border border-red-850'
                     }`}
                   >
-                    {sub.verdict}
+                    {sub?.verdict || 'UNKNOWN'}
                   </span>
                 </td>
               </tr>

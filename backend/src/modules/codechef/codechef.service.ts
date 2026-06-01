@@ -14,17 +14,39 @@ export class CodechefService {
       waitUntil: 'networkidle2',
     });
 
+    const title = await page.title();
+    console.log('CodeChef page title:', title);
+
     // Extract rating
-    const rating = await page.$eval(
-      '.rating-number',
-      (el) => el.textContent
-    );
+    let rating: string | null = null;
+
+    try {
+      await page.waitForSelector('.rating-number', {
+        timeout: 10000,
+      });
+
+      rating = await page.$eval('.rating-number', (el) => {
+        const text = el.textContent?.trim() || '';
+
+        const match = text.match(/\d+/);
+
+        return match ? match[0] : null;
+      });
+    } catch {
+      console.log('Rating selector not found');
+    }
+
+    console.log('CodeChef rating:', rating);
 
     await browser.close();
 
     return {
-      handle,
-      rating,
+      user: {
+        handle,
+        rating: rating ? parseInt(rating, 10) : null,
+      },
+      ratings: [],
+      submissions: [],
     };
   }
 }

@@ -38,7 +38,34 @@ export class LeetcodeService {
         }
       );
 
-      return response.data.data.matchedUser;
+      const user = response.data.data.matchedUser;
+
+return {
+  user: {
+    username: user.username,
+    ranking: user.profile?.ranking,
+    reputation: user.profile?.reputation,
+
+    easySolved:
+      user.submitStats?.acSubmissionNum?.find(
+        (x) => x.difficulty === 'Easy'
+      )?.count || 0,
+
+    mediumSolved:
+      user.submitStats?.acSubmissionNum?.find(
+        (x) => x.difficulty === 'Medium'
+      )?.count || 0,
+
+    hardSolved:
+      user.submitStats?.acSubmissionNum?.find(
+        (x) => x.difficulty === 'Hard'
+      )?.count || 0,
+  },
+
+  ratings: [],
+
+  submissions: [],
+};
     } catch (error) {
       return {
         success: false,

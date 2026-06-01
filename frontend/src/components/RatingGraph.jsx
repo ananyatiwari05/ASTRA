@@ -25,14 +25,19 @@ export default function RatingGraph({ history, isLoading }) {
   }
 
   // Format date labels from Unix timestamps (in seconds)
-  const chartData = history ? history.map((item) => ({
+  const safeHistory = Array.isArray(history) ? history : [];
+
+  const chartData = safeHistory.map((item) => ({
     ...item,
-    name: `Contest ${item.contestId}`,
-    date: new Date(item.time * 1000).toLocaleDateString(undefined, {
-      month: 'short',
-      year: '2-digit'
-    }),
-  })) : [];
+    name: `Contest ${item?.contestId || ''}`,
+    date: item?.time
+      ? new Date(item.time * 1000).toLocaleDateString(undefined, {
+          month: 'short',
+          year: '2-digit',
+        })
+      : 'Unknown',
+    rating: Number(item?.rating ?? item?.newRating ?? 0),
+  }));
 
   return (
     <div className="p-4 border border-gray-700 rounded bg-gray-900 text-white h-80 flex flex-col">
@@ -41,7 +46,7 @@ export default function RatingGraph({ history, isLoading }) {
         <p className="text-xs text-gray-400">Codeforces rating progress</p>
       </div>
 
-      <div className="flex-1 w-full min-h-0 bg-gray-950/40 p-2 rounded border border-gray-805">
+      <div className="flex-1 w-full min-h-0 bg-gray-950/40 p-2 rounded border border-gray-800">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart
