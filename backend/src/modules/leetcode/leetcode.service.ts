@@ -37,36 +37,44 @@ export class LeetcodeService {
           },
         }
       );
-
       const user = response.data.data.matchedUser;
 
-return {
-  user: {
-    username: user.username,
-    ranking: user.profile?.ranking,
-    reputation: user.profile?.reputation,
+      if (!user) {
+        return {
+          success: false,
+          message: 'LeetCode user not found',
+        };
+      }
 
-    easySolved:
-      user.submitStats?.acSubmissionNum?.find(
-        (x) => x.difficulty === 'Easy'
-      )?.count || 0,
+      return {
+        user: {
+          username: user.username,
+          ranking: user.profile?.ranking,
+          reputation: user.profile?.reputation,
 
-    mediumSolved:
-      user.submitStats?.acSubmissionNum?.find(
-        (x) => x.difficulty === 'Medium'
-      )?.count || 0,
+          easySolved:
+            user.submitStats?.acSubmissionNum?.find(
+              (x) => x.difficulty === 'Easy'
+            )?.count || 0,
 
-    hardSolved:
-      user.submitStats?.acSubmissionNum?.find(
-        (x) => x.difficulty === 'Hard'
-      )?.count || 0,
-  },
+          mediumSolved:
+            user.submitStats?.acSubmissionNum?.find(
+              (x) => x.difficulty === 'Medium'
+            )?.count || 0,
 
-  ratings: [],
+          hardSolved:
+            user.submitStats?.acSubmissionNum?.find(
+              (x) => x.difficulty === 'Hard'
+            )?.count || 0,
+        },
 
-  submissions: [],
-};
-    } catch (error) {
+        ratings: [],
+
+        submissions: [],
+      };
+    } catch (error: any) {
+      console.error('LEETCODE ERROR:', error?.response?.data || error);
+
       return {
         success: false,
         message: 'Failed to fetch LeetCode data',

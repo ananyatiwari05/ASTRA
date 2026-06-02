@@ -1,0 +1,162 @@
+import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+
+function LoginPage() {
+  const [isLogin, setIsLogin] = useState(true);
+
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-gray-900/95 backdrop-blur border border-gray-800 rounded-3xl shadow-2xl p-8 hover:border-blue-900 transition-all duration-300">
+
+
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-white">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </h2>
+          <p className="text-gray-400 mt-2">
+            {isLogin
+              ? 'Log in to continue your ASTRA journey'
+              : 'Join ASTRA and track your progress'}
+          </p>
+        </div>
+
+        {isLogin ? (
+          <form className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-sm text-blue-400 hover:text-blue-300"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+            >
+              Login
+            </button>
+          </form>
+        ) : (
+          <form className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                placeholder="Enter your name"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Create a password"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                placeholder="Confirm password"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <button
+              type="button"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+            >
+              Create Account
+            </button>
+          </form>
+        )}
+
+        <div className="flex items-center my-6">
+          <div className="flex-1 border-t border-gray-700"></div>
+          <span className="px-3 text-gray-500 text-sm">OR</span>
+          <div className="flex-1 border-t border-gray-700"></div>
+        </div>
+
+        <button
+          type="button"
+          className="w-full py-3.5 bg-white text-gray-800 rounded-xl font-semibold border border-gray-300 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 flex items-center justify-center gap-3"
+        >
+          <FcGoogle size={22} />
+          Continue with Google
+        </button>
+
+        <div className="text-center text-sm mt-6">
+          {isLogin ? (
+            <p className="text-gray-400">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setIsLogin(false)}
+                className="text-blue-400 font-semibold hover:text-blue-300 transition-colors"
+              >
+                Sign Up
+              </button>
+            </p>
+          ) : (
+            <p className="text-gray-400">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setIsLogin(true)}
+                className="text-blue-400 font-semibold hover:text-blue-300 transition-colors"
+              >
+                Login
+              </button>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default LoginPage;
