@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { CodeforcesService } from './codeforces.service';
 
-@Controller('cf')
+@Controller('cf') 
 export class CodeforcesController {
   constructor(private readonly codeforcesService: CodeforcesService) {}
 

@@ -2,8 +2,31 @@ import { Module } from '@nestjs/common';
 import { CodeforcesModule } from './modules/codeforces/codeforces.module';
 import { CodechefModule } from './modules/codechef/codechef.module';
 import { LeetcodeModule } from './modules/leetcode/leetcode.module';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
-  imports: [CodeforcesModule, CodechefModule, LeetcodeModule],
+  imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
+  ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+
+    TypeOrmModule.forRootAsync({
+  useFactory: () => ({
+    type: 'postgres',
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    autoLoadEntities: true,
+    synchronize: true,
+  }),
+}),
+
+    UsersModule,
+  ]
 })
 export class AppModule {}
