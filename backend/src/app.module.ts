@@ -5,6 +5,7 @@ import { LeetcodeModule } from './modules/leetcode/leetcode.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
@@ -27,6 +28,8 @@ import { UsersModule } from './modules/users/users.module';
 }),
 
     UsersModule,
+
+    AuthModule,
   ]
 })
 export class AppModule {}
