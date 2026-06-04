@@ -1,8 +1,57 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
 
 function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.post('http://localhost:3000/auth/login', {
+        email,
+        password,
+      });
+
+      localStorage.setItem('token', res.data.access_token);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.post('http://localhost:3000/auth/register', {
+        email,
+        password,
+      });
+
+      alert('Account created successfully. Please login.');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setIsLogin(true);
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Signup failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
@@ -30,6 +79,8 @@ function LoginPage() {
                 type="email"
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -41,6 +92,8 @@ function LoginPage() {
                 type="password"
                 placeholder="Enter your password"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
@@ -56,8 +109,10 @@ function LoginPage() {
             <button
               type="button"
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+              onClick={handleLogin}
+              disabled={loading}
             >
-              Login
+              {loading ? 'Please wait...' : 'Login'}
             </button>
           </form>
         ) : (
@@ -81,6 +136,8 @@ function LoginPage() {
                 type="email"
                 placeholder="Enter your email"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -92,6 +149,8 @@ function LoginPage() {
                 type="password"
                 placeholder="Create a password"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
@@ -103,14 +162,18 @@ function LoginPage() {
                 type="password"
                 placeholder="Confirm password"
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
 
             <button
               type="button"
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+              onClick={handleSignup}
+              disabled={loading}
             >
-              Create Account
+              {loading ? 'Please wait...' : 'Create Account'}
             </button>
           </form>
         )}
