@@ -75,7 +75,7 @@ export class AuthService {
     };
   }
 
-  async googleLogin(userData: any) {
+  async socialLogin(userData: any, provider: 'google' | 'github') {
     const existingUser = await this.usersService.findByEmail(
       userData.email,
     );
@@ -90,11 +90,20 @@ export class AuthService {
       };
     }
 
-    const newUser = await this.usersService.create({
+    const createPayload: any = {
       email: userData.email,
-      googleId: userData.googleId,
-      provider: 'google',
-    });
+      provider,
+    };
+
+    if (provider === 'google') {
+      createPayload.googleId = userData.googleId;
+    }
+
+    if (provider === 'github') {
+      createPayload.githubId = userData.githubId;
+    }
+
+    const newUser = await this.usersService.create(createPayload);
 
     return {
       token: this.jwtService.sign({
@@ -103,5 +112,13 @@ export class AuthService {
       }),
       user: newUser,
     };
+  }
+
+  async googleLogin(userData: any) {
+    return this.socialLogin(userData, 'google');
+  }
+
+  async githubLogin(userData: any) {
+    return this.socialLogin(userData, 'github');
   }
 }

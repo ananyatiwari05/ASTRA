@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
+import { FaGithub } from 'react-icons/fa';
 
 function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -76,6 +77,11 @@ function LoginPage() {
   const handleGoogleLogin = () => {
     window.location.href =
       'http://localhost:3000/auth/google';
+  };
+
+  const handleGithubLogin = () => {
+    window.location.href =
+      'http://localhost:3000/auth/github';
   };
 
   return (
@@ -216,6 +222,14 @@ function LoginPage() {
         >
           <FcGoogle size={22} />
           Continue with Google
+        </button>
+        <button
+          type="button"
+          onClick={handleGithubLogin}
+          className="w-full mt-3 py-3.5 bg-gray-800 text-white rounded-xl font-semibold border border-gray-700 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 flex items-center justify-center gap-3"
+        >
+          <FaGithub size={22} />
+          Continue with GitHub
         </button>
 
         <div className="text-center text-sm mt-6">
