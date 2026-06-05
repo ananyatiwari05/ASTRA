@@ -74,4 +74,34 @@ export class AuthService {
       }
     };
   }
+
+  async googleLogin(userData: any) {
+    const existingUser = await this.usersService.findByEmail(
+      userData.email,
+    );
+
+    if (existingUser) {
+      return {
+        token: this.jwtService.sign({
+          sub: existingUser.id,
+          email: existingUser.email,
+        }),
+        user: existingUser,
+      };
+    }
+
+    const newUser = await this.usersService.create({
+      email: userData.email,
+      googleId: userData.googleId,
+      provider: 'google',
+    });
+
+    return {
+      token: this.jwtService.sign({
+        sub: newUser.id,
+        email: newUser.email,
+      }),
+      user: newUser,
+    };
+  }
 }

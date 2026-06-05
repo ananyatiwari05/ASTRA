@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
@@ -10,6 +10,14 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+      navigate('/profile');
+    }
+  }, [navigate]);
 
   const handleLogin = async () => {
     try {
@@ -63,6 +71,11 @@ function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href =
+      'http://localhost:3000/auth/google';
   };
 
   return (
@@ -198,6 +211,7 @@ function LoginPage() {
 
         <button
           type="button"
+          onClick={handleGoogleLogin}
           className="w-full py-3.5 bg-white text-gray-800 rounded-xl font-semibold border border-gray-300 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 flex items-center justify-center gap-3"
         >
           <FcGoogle size={22} />

@@ -4,11 +4,13 @@ import React, {
 } from 'react';
 
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 
 export default function Profile() {
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -89,6 +91,12 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    navigate('/login');
+  };
+
   if (loading) {
     return (
       <div className="text-white p-10">
@@ -114,6 +122,12 @@ export default function Profile() {
             <p className="text-gray-400 mt-2">
               {formData.email}
             </p>
+            <button
+              onClick={handleLogout}
+              className="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
           </div>
 
           <div className="bg-gray-900 rounded-xl p-6 space-y-4">
