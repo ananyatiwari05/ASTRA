@@ -1,15 +1,56 @@
-import React, { useState } from 'react';
+import React, {
+  useEffect,
+  useState,
+} from 'react';
+
+import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 
 export default function Profile() {
+  const [loading, setLoading] = useState(true);
+
   const [formData, setFormData] = useState({
-    name: 'Ananya Tiwari',
-    email: 'ananya@gmail.com',
+    name: '',
+    email: '',
     cfHandle: '',
     ccHandle: '',
     lcHandle: '',
   });
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token =
+        localStorage.getItem('token');
+
+      const response = await axios.get(
+        'http://localhost:3000/auth/me',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const user = response.data;
+
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        cfHandle: user.cfHandle || '',
+        ccHandle: user.ccHandle || '',
+        lcHandle: user.lcHandle || '',
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -18,19 +59,43 @@ export default function Profile() {
     });
   };
 
-  const handleSave = async () => {
+  const saveHandles = async () => {
     try {
-      // TODO:
-      // PATCH /users/me/handles
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `http://localhost:3000/users/${userId}/handles`,
+        {
+          cfHandle: formData.cfHandle,
+          ccHandle: formData.ccHandle,
+          lcHandle: formData.lcHandle,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      console.log(formData);
-
-      alert('Profile updated');
+      alert('Handles Saved');
     } catch (err) {
+      console.error(err.response?.data);
       console.error(err);
-      alert('Failed to update profile');
+
+      alert(
+        err.response?.data?.message ||
+        'Failed to save handles'
+      );
     }
   };
+
+  if (loading) {
+    return (
+      <div className="text-white p-10">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-black text-white">
@@ -39,90 +104,62 @@ export default function Profile() {
       <div className="flex-1 flex flex-col">
         <Navbar />
 
-        <main className="flex-1 p-6 bg-gray-950/20">
-          <div className="max-w-3xl mx-auto">
+        <main className="p-6">
 
-            {/* Header */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-cyan-600 flex items-center justify-center text-3xl font-bold">
-                  {formData.name[0]}
-                </div>
+          <div className="bg-gray-900 rounded-xl p-6 mb-6">
+            <h1 className="text-3xl font-bold">
+              {formData.name}
+            </h1>
 
-                <div>
-                  <h1 className="text-2xl font-bold">
-                    {formData.name}
-                  </h1>
+            <p className="text-gray-400 mt-2">
+              {formData.email}
+            </p>
+          </div>
 
-                  <p className="text-gray-400">
-                    {formData.email}
-                  </p>
-                </div>
-              </div>
+          <div className="bg-gray-900 rounded-xl p-6 space-y-4">
+
+            <div>
+              <label>Codeforces</label>
+
+              <input
+                type="text"
+                name="cfHandle"
+                value={formData.cfHandle}
+                onChange={handleChange}
+                className="w-full mt-2 p-3 rounded bg-gray-800"
+              />
             </div>
 
-            {/* Profile Form */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold mb-6">
-                Coding Profiles
-              </h2>
+            <div>
+              <label>CodeChef</label>
 
-              <div className="space-y-5">
-
-                <div>
-                  <label className="block mb-2 text-gray-300">
-                    Codeforces Handle
-                  </label>
-
-                  <input
-                    type="text"
-                    name="cfHandle"
-                    value={formData.cfHandle}
-                    onChange={handleChange}
-                    placeholder="tourist"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-gray-300">
-                    CodeChef Handle
-                  </label>
-
-                  <input
-                    type="text"
-                    name="ccHandle"
-                    value={formData.ccHandle}
-                    onChange={handleChange}
-                    placeholder="username"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-gray-300">
-                    LeetCode Handle
-                  </label>
-
-                  <input
-                    type="text"
-                    name="lcHandle"
-                    value={formData.lcHandle}
-                    onChange={handleChange}
-                    placeholder="username"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-
-                <button
-                  onClick={handleSave}
-                  className="w-full bg-cyan-600 hover:bg-cyan-700 transition py-3 rounded-lg font-semibold"
-                >
-                  Save Handles
-                </button>
-
-              </div>
+              <input
+                type="text"
+                name="ccHandle"
+                value={formData.ccHandle}
+                onChange={handleChange}
+                className="w-full mt-2 p-3 rounded bg-gray-800"
+              />
             </div>
+
+            <div>
+              <label>LeetCode</label>
+
+              <input
+                type="text"
+                name="lcHandle"
+                value={formData.lcHandle}
+                onChange={handleChange}
+                className="w-full mt-2 p-3 rounded bg-gray-800"
+              />
+            </div>
+
+            <button
+              onClick={saveHandles}
+              className="w-full bg-cyan-600 py-3 rounded-lg"
+            >
+              Save Handles
+            </button>
 
           </div>
         </main>

@@ -32,11 +32,15 @@ export class AuthService {
     });
 
     return {
-      access_token: this.jwtService.sign({
-        sub: user.id,
-        email: user.email,
-      }),
-    };
+  access_token: this.jwtService.sign({
+    sub: user.id,
+    email: user.email,
+  }),
+  user: {
+    id: user.id,
+    email: user.email,
+  },
+};
   }
 
   async login(
@@ -64,6 +68,10 @@ export class AuthService {
         sub: user.id,
         email: user.email,
       }),
+      user: {
+      id: user.id,
+      email: user.email
+      }
     };
   }
 }

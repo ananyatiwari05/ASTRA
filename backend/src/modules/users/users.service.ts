@@ -28,17 +28,19 @@ export class UsersService {
   }
 
   async updateHandles(
-    id: number,
-    cfHandle: string,
-    ccHandle: string,
-    lcHandle: string,
-  ) {
-    await this.userRepo.update(id, {
-      cfHandle,
-      ccHandle,
-      lcHandle,
-    });
+  id: number,
+  cfHandle: string,
+  ccHandle: string,
+  lcHandle: string,
+) {
+  console.log('Updating user:', id);
 
-    return this.findById(id);
-  }
+  await this.userRepo.update(id, {
+    cfHandle,
+    ccHandle,
+    lcHandle,
+  });
+
+  return this.findById(id);
+}
 }

@@ -20,9 +20,13 @@ function LoginPage() {
       });
 
       localStorage.setItem('token', res.data.access_token);
-      navigate('/dashboard');
+      localStorage.setItem(
+        'userId',
+        res.data.user.id
+      );
+      navigate('/profile');
     } catch (err) {
-      alert(err?.response?.data?.message || 'Login failed');
+      alert(err?.res?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -36,18 +40,26 @@ function LoginPage() {
 
     try {
       setLoading(true);
-      await axios.post('http://localhost:3000/auth/register', {
-        email,
-        password,
-      });
+      const res = await axios.post(
+        'http://localhost:3000/auth/register',
+        {
+          email,
+          password,
+        }
+      );
+      localStorage.setItem(
+        'userId',
+        res.data.user.id
+      );
 
-      alert('Account created successfully. Please login.');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setIsLogin(true);
+      localStorage.setItem(
+        'token',
+        res.data.access_token
+      );
+      navigate('/profile');
+
     } catch (err) {
-      alert(err?.response?.data?.message || 'Signup failed');
+      alert(err?.res?.data?.message || 'Signup failed');
     } finally {
       setLoading(false);
     }

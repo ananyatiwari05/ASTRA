@@ -13,6 +13,7 @@ export class UsersController {
     private readonly usersService: UsersService,
   ) {}
 
+  
   @Get(':id')
   getUser(@Param('id') id: string) {
     return this.usersService.findById(Number(id));
@@ -22,7 +23,11 @@ export class UsersController {
   updateHandles(
     @Param('id') id: string,
     @Body() body: any,
-  ) {
+  ) 
+  {
+    console.log('ID =', id);
+
+  console.log('BODY =', body);
     return this.usersService.updateHandles(
       Number(id),
       body.cfHandle,

@@ -9,7 +9,13 @@ import React from 'react';
  * @param {function} props.onImportSubmit - Submit/import handler
  * @param {boolean} props.isLoading - Flag indicating if import API simulation is loading
  */
-export default function Navbar({ platform, handleInput, onHandleInputChange, onImportSubmit, isLoading }) {
+export default function Navbar({
+  platform = '',
+  handleInput = '',
+  onHandleInputChange = () => {},
+  onImportSubmit = (e) => e.preventDefault(),
+  isLoading = false,
+})  {
   return (
     <header className="bg-gray-950 border-b border-gray-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
       {/* Title */}
