@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
@@ -15,6 +15,13 @@ export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [submissionsData, setSubmissionsData] = useState([]);
   const [ratingHistory, setRatingHistory] = useState([]);
+
+  useEffect(() => {
+    setUserData(null);
+    setSubmissionsData([]);
+    setRatingHistory([]);
+    setHandleInput('');
+  }, [platform]);
 
   const handleImport = async (e) => {
     e.preventDefault();
@@ -43,6 +50,9 @@ export default function Dashboard() {
       setRatingHistory(data.ratings || []);
     } catch (error) {
       console.error(error);
+      setUserData(null);
+      setSubmissionsData([]);
+      setRatingHistory([]);
       alert('User not found');
     } finally {
       setIsLoading(false);
@@ -121,7 +131,11 @@ export default function Dashboard() {
           )}
 
           {/* Recent Submissions Table */}
-          <SubmissionTable submissions={submissionsData} isLoading={isLoading} />
+          <SubmissionTable
+            submissions={submissionsData}
+            isLoading={isLoading}
+            platform={platform}
+          />
 
         </main>
       </div>
