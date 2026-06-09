@@ -5,18 +5,33 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProfilesService {
-  constructor(
-    @InjectRepository(CompetitiveProfile)
-    private profileRepo: Repository<CompetitiveProfile>,
-  ) {}
+    constructor(
+        @InjectRepository(CompetitiveProfile)
+        private profileRepo: Repository<CompetitiveProfile>,
+    ) { }
 
-  async findByUserId(userId: number) {
-    return this.profileRepo.findOne({
-      where: { userId },
-    });
-  }
+    async findByUserId(userId: number) {
+        return this.profileRepo.findOne({
+            where: { userId },
+        });
+    }
 
-  async saveProfile(data: Partial<CompetitiveProfile>) {
-    return this.profileRepo.save(data);
-  }
+    async saveProfile(
+        data: Partial<CompetitiveProfile>,
+    ) {
+        const existing =
+            await this.profileRepo.findOne({
+                where: {
+                    userId: data.userId,
+                },
+            });
+
+        if (existing) {
+            Object.assign(existing, data);
+
+            return this.profileRepo.save(existing);
+        }
+
+        return this.profileRepo.save(data);
+    }
 }

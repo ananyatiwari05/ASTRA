@@ -5,5 +5,6 @@ import { CodechefService } from './codechef.service';
 @Module({
   controllers: [CodechefController],
   providers: [CodechefService],
+  exports: [CodechefService],
 })
 export class CodechefModule {}

@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
 import Sidebar from '../components/Sidebar';
-import Navbar from '../components/Navbar';
 import ProfileCard from '../components/ProfileCard';
 import RatingCard from '../components/RatingCard';
 import RatingGraph from '../components/RatingGraph';
 import SubmissionTable from '../components/SubmissionTable';
-import LeetcodeStatsCard from '../components/LeetcodeStatsCard';
 
 export default function Dashboard() {
-  const [handleInput, setHandleInput] = useState('tourist');
-  const [platform, setPlatform] = useState('codeforces');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [userData, setUserData] = useState(null);
-  const [submissionsData, setSubmissionsData] = useState([]);
   const [ratingHistory, setRatingHistory] = useState([]);
+  const [submissionsData, setSubmissionsData] = useState([]);
 
   useEffect(() => {
     setUserData(null);
@@ -33,15 +31,20 @@ export default function Dashboard() {
       leetcode: 'lc',
       codechef: 'cc',
     };
+    fetchDashboard();
+  }, []);
 
+  const fetchDashboard = async () => {
     try {
       setIsLoading(true);
 
-      const response = await axios.get(
-        `http://localhost:3000/${endpointMap[platform]}/${handleInput.trim()}`
-      );
+      const userId =
+        localStorage.getItem('userId');
 
-      console.log(response.data);
+      const response =
+        await axios.get(
+          `http://localhost:3000/dashboard/${userId}`
+        );
 
       const data = response.data;
 
@@ -54,38 +57,57 @@ export default function Dashboard() {
       setSubmissionsData([]);
       setRatingHistory([]);
       alert('User not found');
+      console.log('Dashboard Data:', data);
+
+      setUserData({
+        ...(data.user || {}),
+        ...(data.profile || {}),
+      });
+
+      setRatingHistory(
+        data.ratingHistory || []
+      );
+
+      setSubmissionsData(
+        data.submissions || []
+      );
+
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-black text-white font-sans">
-      {/* Left Sidebar */}
+    <div className="flex min-h-screen bg-black text-white">
       <Sidebar />
 
-      {/* Right Content Panel */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navbar */}
-        <Navbar
-          platform={platform}
-          handleInput={handleInput}
-          onHandleInputChange={setHandleInput}
-          onImportSubmit={handleImport}
+      <div className="flex-1 p-6 space-y-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <ProfileCard
+            user={userData}
+            isLoading={isLoading}
+          />
+
+          <RatingCard
+            user={userData}
+            isLoading={isLoading}
+          />
+
+        </div>
+
+        <RatingGraph
+          history={ratingHistory}
           isLoading={isLoading}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-6 space-y-6 overflow-y-auto bg-gray-950/20">
-          <div className="flex gap-3">
-            <button
-              onClick={() => setPlatform('codeforces')}
-              className={`px-4 py-2 rounded ${
-                platform === 'codeforces' ? 'bg-cyan-600' : 'bg-gray-800'
-              }`}
-            >
-              Codeforces
-            </button>
+        <SubmissionTable
+          submissions={submissionsData}
+          isLoading={isLoading}
+        />
 
             <button
               onClick={() => setPlatform('leetcode')}

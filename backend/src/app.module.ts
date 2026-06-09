@@ -6,6 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProfilesModule } from './modules/profiles/profile.module';
+import { RatingsModule } from './modules/ratings/ratings.module';
+import { SubmissionsModule } from './modules/submissions/submissions.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
@@ -28,8 +32,11 @@ import { AuthModule } from './modules/auth/auth.module';
 }),
 
     UsersModule,
-
     AuthModule,
+    ProfilesModule,
+    RatingsModule,
+    SubmissionsModule,
+    DashboardModule,
   ]
 })
 export class AppModule {}

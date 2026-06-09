@@ -1,32 +1,40 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
 } from 'typeorm';
+
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Submission {
-  @PrimaryGeneratedColumn()
-  id!: number;
+    @PrimaryGeneratedColumn()
+    id!: number;
 
-  @Column()
-  userId!: number;
+    @Column()
+    userId!: number;
 
-  @Column()
-  platform!: string;
+    @Column()
+    platform!: string;
 
-  @Column()
-  problemId!: string;
+    @Column()
+    problemId!: string;
 
-  @Column()
-  problemName!: string;
+    @Column()
+    problemName!: string;
 
-  @Column()
-  verdict!: string;
+    @Column()
+    verdict!: string;
 
-  @Column({ nullable: true })
-  language!: string;
+    @Column({ nullable: true })
+    language!: string;
 
-  @Column()
-  submittedAt!: Date;
+    @Column()
+    submittedAt!: Date;
+    @ManyToOne(
+        () => User,
+        (user) => user.submissions,
+    )
+    user!: User;
 }

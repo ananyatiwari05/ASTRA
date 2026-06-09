@@ -5,23 +5,37 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class RatingsService {
-  constructor(
-    @InjectRepository(RatingHistory)
-    private ratingRepo: Repository<RatingHistory>,
-  ) {}
+    constructor(
+        @InjectRepository(RatingHistory)
+        private ratingRepo: Repository<RatingHistory>,
+    ) { }
 
-  async getUserRatings(userId: number) {
-    return this.ratingRepo.find({
-      where: { userId },
-      order: {
-        contestTime: 'ASC',
-      },
-    });
-  }
+    async getUserRatings(userId: number) {
+        return this.ratingRepo.find({
+            where: { userId },
+            order: {
+                contestTime: 'ASC',
+            },
+        });
+    }
 
-  async saveRatings(
-    ratings: Partial<RatingHistory>[],
-  ) {
-    return this.ratingRepo.save(ratings);
-  }
+    async saveRatings(
+        ratings: Partial<RatingHistory>[],
+    ) {
+        for (const rating of ratings) {
+
+            const existing =
+                await this.ratingRepo.findOne({
+                    where: {
+                        userId: rating.userId,
+                        platform: rating.platform,
+                        contestId: rating.contestId,
+                    },
+                });
+
+            if (!existing) {
+                await this.ratingRepo.save(rating);
+            }
+        }
+    }
 }

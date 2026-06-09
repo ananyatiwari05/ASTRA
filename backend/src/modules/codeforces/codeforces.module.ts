@@ -5,5 +5,6 @@ import { CodeforcesService } from './codeforces.service';
 @Module({
   controllers: [CodeforcesController],
   providers: [CodeforcesService],
+  exports: [CodeforcesService]
 })
 export class CodeforcesModule {}

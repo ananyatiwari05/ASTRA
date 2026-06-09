@@ -45,7 +45,7 @@ export default function SubmissionTable({ submissions, isLoading }) {
                   {sub?.time || '-'}
                 </td>
                 <td className="p-3 font-medium">
-                  {sub?.problem?.name || sub?.problem || 'Unknown Problem'}
+                  {sub?.problemName || 'Unknown Problem'}
                 </td>
                 <td className="p-3">
                   <span

@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  OneToMany,
+} from 'typeorm';
+
+import { CompetitiveProfile } from '../../profiles/entities/competitive-profile.entity';
+import { RatingHistory } from '../../ratings/entities/rating-history.entity';
+import { Submission } from '../../submissions/entities/submission.entity';
 
 @Entity()
 export class User {
@@ -28,4 +38,21 @@ export class User {
 
   @Column({ nullable: true })
   lcHandle!: string;
+  @OneToOne(
+    () => CompetitiveProfile,
+    (profile) => profile.user,
+  )
+  profile!: CompetitiveProfile;
+
+  @OneToMany(
+    () => RatingHistory,
+    (rating) => rating.user,
+  )
+  ratings!: RatingHistory[];
+
+  @OneToMany(
+    () => Submission,
+    (submission) => submission.user,
+  )
+  submissions!: Submission[];
 }

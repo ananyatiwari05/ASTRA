@@ -3,7 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
+
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class CompetitiveProfile {
@@ -12,6 +16,13 @@ export class CompetitiveProfile {
 
   @Column()
   userId!: number;
+
+  @OneToOne(
+    () => User,
+    (user) => user.profile,
+  )
+  @JoinColumn()
+  user!: User;
 
   @Column({ nullable: true })
   cfCurrentRating!: number;
