@@ -2,17 +2,25 @@ import React from 'react';
 
 export default function RatingCard({
   user,
+  platform = 'codeforces',
   isLoading,
 }) {
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
+  const currentUser =
+    platform === 'codechef'
+      ? user?.codechef
+      : platform === 'leetcode'
+      ? user?.leetcode
+      : user?.codeforces;
+
   const currentRating =
-    user?.cfCurrentRating || 0;
+    currentUser?.cfCurrentRating;
 
   const maxRating =
-    user?.cfMaxRating || 0;
+    currentUser?.cfMaxRating;
 
   return (
     <div className="p-6 border border-gray-700 rounded bg-gray-900">
@@ -29,17 +37,21 @@ export default function RatingCard({
           </p>
 
           <p className="text-3xl text-cyan-400 font-bold">
-            {currentRating || 'N/A'}
+            {platform === 'leetcode'
+              ? currentUser?.easySolved ?? 'N/A'
+              : currentRating ?? 'N/A'}
           </p>
         </div>
 
         <div className="bg-black p-4 rounded">
           <p className="text-gray-400">
-            Max Rating
+            {platform === 'leetcode' ? 'Medium Solved' : 'Max Rating'}
           </p>
 
           <p className="text-3xl font-bold">
-            {maxRating || 'N/A'}
+            {platform === 'leetcode'
+              ? currentUser?.mediumSolved ?? 'N/A'
+              : maxRating ?? 'N/A'}
           </p>
         </div>
 
@@ -51,7 +63,9 @@ export default function RatingCard({
         </span>
 
         <span className="ml-3 text-green-400 font-semibold">
-          {user?.cfRank || 'Unrated'}
+          {platform === 'leetcode'
+            ? currentUser?.ranking || 'N/A'
+            : currentUser?.cfRank || 'Unrated'}
         </span>
       </div>
 

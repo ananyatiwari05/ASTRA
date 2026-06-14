@@ -25,34 +25,33 @@ export default function Profile() {
   }, []);
 
   const fetchProfile = async () => {
-    try {
-      const token =
-        localStorage.getItem('token');
+  try {
+    const userId = localStorage.getItem('userId');
 
-      const response = await axios.get(
-        'http://localhost:3000/auth/me',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const response = await axios.get(
+      `http://localhost:3000/users/${userId}`
+    );
 
-      const user = response.data;
+    const user = response.data;
 
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        cfHandle: user.cfHandle || '',
-        ccHandle: user.ccHandle || '',
-        lcHandle: user.lcHandle || '',
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setFormData({
+      name: user.name || '',
+      email: user.email || '',
+      cfHandle: user.cfHandle || '',
+      ccHandle: user.ccHandle || '',
+      lcHandle: user.lcHandle || '',
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    navigate('/login');
+  }
+
+  finally {
+    setLoading(false);
+  }
+};
 
   const handleChange = (e) => {
     setFormData({

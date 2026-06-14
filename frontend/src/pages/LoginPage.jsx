@@ -35,7 +35,13 @@ function LoginPage() {
       );
       navigate('/profile');
     } catch (err) {
-      alert(err?.res?.data?.message || 'Login failed');
+      console.error(err);
+
+      alert(
+        err?.response?.data?.message ||
+        err?.message ||
+        'Login failed'
+      );
     } finally {
       setLoading(false);
     }

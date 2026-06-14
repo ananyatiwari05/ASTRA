@@ -2,18 +2,26 @@ import React from 'react';
 
 export default function ProfileCard({
   user,
+  platform = 'codeforces',
   isLoading,
-}) {
+})  {
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  const handle =
-    user?.cfHandle ||
-    user?.ccHandle ||
-    user?.lcHandle ||
-    user?.email ||
-    'Unknown User';
+  const currentUser =
+  platform === 'codechef'
+    ? user?.codechef
+    : platform === 'leetcode'
+    ? user?.leetcode
+    : user?.codeforces;
+
+const handle =
+  currentUser?.cfHandle ||
+  currentUser?.ccHandle ||
+  currentUser?.lcHandle ||
+  user?.email ||
+  'Unknown User';
 
   return (
     <div className="p-6 border border-gray-700 rounded bg-gray-900 text-white flex items-center gap-5">

@@ -82,12 +82,15 @@ export class AuthService {
 
     if (existingUser) {
       return {
-        token: this.jwtService.sign({
-          sub: existingUser.id,
-          email: existingUser.email,
-        }),
-        user: existingUser,
-      };
+  access_token: this.jwtService.sign({
+    sub: existingUser.id,
+    email: existingUser.email,
+  }),
+  user: {
+    id: existingUser.id,
+    email: existingUser.email,
+  },
+};
     }
 
     const createPayload: any = {
@@ -105,13 +108,16 @@ export class AuthService {
 
     const newUser = await this.usersService.create(createPayload);
 
-    return {
-      token: this.jwtService.sign({
-        sub: newUser.id,
-        email: newUser.email,
-      }),
-      user: newUser,
-    };
+     return {
+  access_token: this.jwtService.sign({
+    sub: newUser.id,
+    email: newUser.email,
+  }),
+  user: {
+    id: newUser.id,
+    email: newUser.email,
+  },
+};
   }
 
   async googleLogin(userData: any) {

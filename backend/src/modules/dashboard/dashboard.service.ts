@@ -19,156 +19,112 @@ export class DashboardService {
   private codechefService: CodechefService,
 ) {}
 async getDashboardData(userId: number) {
-const user =
-  await this.usersService.findById(userId);
+  const user = await this.usersService.findById(userId);
 
-if (!user) {
-  throw new Error('User not found');
-}
+  if (!user) {
+    throw new Error('User not found');
+  }
 
-let cfData: any = null;
-let lcData: any = null;
+  let cfData: any = null;
 let ccData: any = null;
+let lcData: any = null;
 
-//forces 
-if (user.cfHandle) {
-  cfData =
-    await this.codeforcesService.getUserData(
+  if (user.cfHandle) {
+    cfData = await this.codeforcesService.getUserData(
       user.cfHandle,
     );
-}
+  }
 
-//chef
-if (user.ccHandle) {
-  ccData =
-    await this.codechefService.getUserData(
+  if (user.ccHandle) {
+    ccData = await this.codechefService.getUserData(
       user.ccHandle,
     );
-}
+  }
 
-//lc
-if (user.lcHandle) {
-  lcData =
-    await this.leetcodeService.getUserData(
+  if (user.lcHandle) {
+    lcData = await this.leetcodeService.getUserData(
       user.lcHandle,
     );
-}
-console.log('Saving profile');
-await this.profilesService.saveProfile({
+  }
 
-  userId,
+  console.log("CF DATA =", cfData);
+  console.log("CC DATA =", ccData);
+  console.log("LC DATA =", lcData);
 
-  cfCurrentRating:
-    cfData?.user?.rating,
+  await this.profilesService.saveProfile({
+    userId,
 
-  cfMaxRating:
-    cfData?.user?.maxRating,
+    cfCurrentRating:
+      cfData?.user?.cfCurrentRating || 0,
 
-  cfRank:
-    cfData?.user?.rank,
+    cfMaxRating:
+      cfData?.user?.cfMaxRating || 0,
 
-  ccCurrentRating:
-    ccData?.user?.rating,
+    cfRank:
+      cfData?.user?.cfRank || 'Unrated',
 
-  totalSolved:
-    (
+    ccCurrentRating:
+      ccData?.user?.cfCurrentRating || 0,
+
+    totalSolved:
       (lcData?.user?.easySolved || 0)
       +
       (lcData?.user?.mediumSolved || 0)
       +
-      (lcData?.user?.hardSolved || 0)
-    ),
-});
+      (lcData?.user?.hardSolved || 0),
+  });
 
-if (cfData?.ratings?.length) {
-
-  const ratings =
-    cfData.ratings.map((contest) => ({
+  const profile =
+    await this.profilesService.findByUserId(
       userId,
+    );
 
-      platform: 'CODEFORCES',
+  return {
+    user: {
+      ...user,
 
-      contestId:
-        String(contest.contestId),
+      codeforces: cfData?.user || null,
 
-      contestName:
-        contest.contestName,
+      codechef: ccData?.user || null,
 
-      ratingBefore:
-        contest.oldRating,
+      leetcode: lcData?.user || null,
+    },
 
-      ratingAfter:
-        contest.newRating,
+    profile,
 
-      ratingChange:
-        contest.newRating -
-        contest.oldRating,
+    ratings: [
+  ...(cfData?.ratingHistory || []).map((r) => ({
+    ...r,
+    platform: 'codeforces',
+  })),
 
-      rank:
-        contest.rank,
+  ...(ccData?.ratingHistory || []).map((r) => ({
+    ...r,
+    platform: 'codechef',
+  })),
 
-      contestTime:
-        new Date(
-          contest.ratingUpdateTimeSeconds * 1000
-        ),
-    }));
-console.log('Saving ratings');
-  await this.ratingsService.saveRatings(
-    ratings,
-  );
-}
+  ...(lcData?.ratingHistory || []).map((r) => ({
+    ...r,
+    platform: 'leetcode',
+  })),
+],
 
-if (cfData?.submissions?.length) {
+    submissions: [
+  ...(cfData?.submissions || []).map((s) => ({
+    ...s,
+    platform: 'codeforces',
+  })),
 
-  const submissionRecords =
-    cfData.submissions.map((sub) => ({
-      userId,
+  ...(ccData?.submissions || []).map((s) => ({
+    ...s,
+    platform: 'codechef',
+  })),
 
-      platform: 'CODEFORCES',
-
-      problemId:
-        `${sub.problem.contestId}-${sub.problem.index}`,
-
-      problemName:
-        sub.problem.name,
-
-      verdict:
-        sub.verdict,
-
-      language:
-        sub.programmingLanguage,
-
-      submittedAt:
-        new Date(
-          sub.creationTimeSeconds * 1000
-        ),
-    }));
-console.log('Saving submissions');
-  await this.submissionsService.saveSubmissions(
-    submissionRecords,
-  );
-}
-
-const profile =
-  await this.profilesService.findByUserId(
-    userId,
-  );
-
-const ratings =
-  await this.ratingsService.getUserRatings(
-    userId,
-  );
-
-const submissions =
-  await this.submissionsService.getUserSubmissions(
-    userId,
-  );
-
-return {
-  user,
-  profile,
-  ratingHistory: ratings,
-  submissions,
-};
+  ...(lcData?.submissions || []).map((s) => ({
+    ...s,
+    platform: 'leetcode',
+  })),
+],
+  };
 }
 }
