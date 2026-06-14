@@ -65,6 +65,9 @@ export default function Profile() {
     try {
       const userId = localStorage.getItem('userId');
       const token = localStorage.getItem('token');
+
+      console.log('USER ID =', userId);
+      console.log('TOKEN =', localStorage.getItem('token'));
       await axios.patch(
         `http://localhost:3000/users/${userId}/handles`,
         {

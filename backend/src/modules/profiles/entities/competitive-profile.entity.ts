@@ -24,27 +24,26 @@ export class CompetitiveProfile {
   @JoinColumn()
   user!: User;
 
-  @Column({ nullable: true })
-  cfCurrentRating!: number;
+  @Column({ nullable: true, default: 0 })
+cfCurrentRating!: number;
 
-  @Column({ nullable: true })
-  cfMaxRating!: number;
+@Column({ nullable: true, default: 0 })
+cfMaxRating!: number;
 
-  @Column({ nullable: true })
-  cfRank!: string;
+@Column({ nullable: true })
+cfRank!: string;
 
-  @Column({ nullable: true })
-  ccCurrentRating!: number;
+@Column({ nullable: true, default: 0 })
+ccCurrentRating!: number;
 
-  @Column({ nullable: true })
-  ccMaxRating!: number;
+@Column({ nullable: true, default: 0 })
+ccMaxRating!: number;
 
-  @Column({ nullable: true })
-  lcContestRating!: number;
+@Column({ nullable: true, default: 0 })
+lcContestRating!: number;
 
-  @Column({ nullable: true })
-  totalSolved!: number;
-
+@Column({ nullable: true, default: 0 })
+totalSolved!: number;
   @UpdateDateColumn()
   updatedAt!: Date;
 }

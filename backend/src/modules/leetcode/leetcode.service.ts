@@ -35,7 +35,7 @@ export class LeetcodeService {
           headers: {
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
       const user = response.data.data.matchedUser;
 
@@ -43,32 +43,36 @@ export class LeetcodeService {
         return {
           success: false,
           message: 'LeetCode user not found',
+          user: null,
+          ratingHistory: [],
+          submissions: [],
         };
       }
 
       return {
+        success: true,
         user: {
-          username: user.username,
-          ranking: user.profile?.ranking,
-          reputation: user.profile?.reputation,
+          lcHandle: user.username,
+          ranking: user.profile?.ranking ?? 'N/A',
+          reputation: user.profile?.reputation ?? 0,
 
           easySolved:
             user.submitStats?.acSubmissionNum?.find(
-              (x) => x.difficulty === 'Easy'
+              (x) => x.difficulty === 'Easy',
             )?.count || 0,
 
           mediumSolved:
             user.submitStats?.acSubmissionNum?.find(
-              (x) => x.difficulty === 'Medium'
+              (x) => x.difficulty === 'Medium',
             )?.count || 0,
 
           hardSolved:
             user.submitStats?.acSubmissionNum?.find(
-              (x) => x.difficulty === 'Hard'
+              (x) => x.difficulty === 'Hard',
             )?.count || 0,
         },
 
-        ratings: [],
+        ratingHistory: [],
 
         submissions: [],
       };
@@ -78,6 +82,9 @@ export class LeetcodeService {
       return {
         success: false,
         message: 'Failed to fetch LeetCode data',
+        user: null,
+        ratingHistory: [],
+        submissions: [],
       };
     }
   }
