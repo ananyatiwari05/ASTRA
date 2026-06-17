@@ -10,6 +10,7 @@ import { ProfilesModule } from './modules/profiles/profile.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ContestsModule } from './modules/contests/contests.module';
 
 @Module({
   imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
@@ -37,6 +38,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     RatingsModule,
     SubmissionsModule,
     DashboardModule,
+    ContestsModule,
   ]
 })
 export class AppModule {}
