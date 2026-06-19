@@ -11,6 +11,9 @@ import { RatingsModule } from './modules/ratings/ratings.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ContestsModule } from './modules/contests/contests.module';
+import { AnalyticsService } from './modules/analytics/analytics.service';
+import { AnalyticsController } from './modules/analytics/analytics.controller';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
@@ -39,6 +42,9 @@ import { ContestsModule } from './modules/contests/contests.module';
     SubmissionsModule,
     DashboardModule,
     ContestsModule,
-  ]
+    AnalyticsModule,
+  ],
+  providers: [AnalyticsService],
+  controllers: [AnalyticsController]
 })
 export class AppModule {}
