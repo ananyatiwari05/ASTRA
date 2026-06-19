@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import {
+  Repository,
+  MoreThan,
+} from 'typeorm';
+
 import { Submission } from '../submissions/entities/submission.entity';
 import { Problem } from '../problems/entities/problem.entity';
 
@@ -14,10 +18,12 @@ export class AnalyticsService {
     private problemsRepository: Repository<Problem>,
   ) {}
 
+  // OLD WEAKNESS LOGIC
   async getUserWeaknesses(userId: number) {
-    const submissions = await this.submissionsRepository.find({
-      where: { userId },
-    });
+    const submissions =
+      await this.submissionsRepository.find({
+        where: { userId },
+      });
 
     const topicStats: Record<
       string,
@@ -47,44 +53,113 @@ export class AnalyticsService {
     }
 
     const weaknesses: {
-  topic: string;
-  attemptCount: number;
-  solveCount: number;
-  successRate: number;
-  recommendedProblems: number;
-}[] = [];
+      topic: string;
+      attemptCount: number;
+      solveCount: number;
+      successRate: number;
+      recommendedProblems: number;
+    }[] = [];
 
-    for (const [topic, stats] of Object.entries(topicStats)) {
+    for (const [topic, stats] of Object.entries(
+      topicStats,
+    )) {
       const successRate =
         stats.attemptCount > 0
-          ? (stats.solveCount / stats.attemptCount) * 100
+          ? (stats.solveCount /
+              stats.attemptCount) *
+            100
           : 0;
 
-      const relatedProblems = await this.problemsRepository
-        .createQueryBuilder('problem')
-        .where('problem.tags ILIKE :topic', {
-          topic: `%${topic}%`,
-        })
-        .getMany();
+      const relatedProblems =
+        await this.problemsRepository
+          .createQueryBuilder('problem')
+          .where('problem.tags ILIKE :topic', {
+            topic: `%${topic}%`,
+          })
+          .getMany();
 
       weaknesses.push({
         topic,
         attemptCount: stats.attemptCount,
         solveCount: stats.solveCount,
         successRate,
-        recommendedProblems: relatedProblems.length,
+        recommendedProblems:
+          relatedProblems.length,
       });
     }
 
     return weaknesses.sort(
-      (a, b) => a.successRate - b.successRate,
+      (a, b) =>
+        a.successRate - b.successRate,
     );
   }
 
+  // NEW CF-BASED WEAKNESS ENGINE
+  async getWeaknessesFromCF(
+    userId: number,
+  ) {
+    const submissions =
+      await this.submissionsRepository.find({
+        where: { userId },
+      });
+
+    const topicStats: Record<
+      string,
+      {
+        total: number;
+        solved: number;
+      }
+    > = {};
+
+    for (const submission of submissions) {
+      const problem =
+        await this.problemsRepository.findOne({
+          where: {
+            problemId:
+              submission.problemId,
+          },
+        });
+
+      if (!problem) continue;
+
+      const tags = problem.tags || [];
+
+      for (const tag of tags) {
+        if (!topicStats[tag]) {
+          topicStats[tag] = {
+            total: 0,
+            solved: 0,
+          };
+        }
+
+        topicStats[tag].total++;
+
+        if (submission.verdict === 'OK') {
+          topicStats[tag].solved++;
+        }
+      }
+    }
+
+    return Object.entries(topicStats)
+      .map(([tag, data]) => ({
+        topic: tag,
+        totalAttempts: data.total,
+        solvedCount: data.solved,
+        successRate:
+          (data.solved / data.total) *
+          100,
+      }))
+      .sort(
+        (a, b) =>
+          a.successRate - b.successRate,
+      );
+  }
+
   async getTopicStats(userId: number) {
-    const submissions = await this.submissionsRepository.find({
-      where: { userId },
-    });
+    const submissions =
+      await this.submissionsRepository.find({
+        where: { userId },
+      });
 
     const topicStats: Record<
       string,
@@ -118,30 +193,38 @@ export class AnalyticsService {
         }
 
         if (submission.rating) {
-          topicStats[tag].ratings.push(submission.rating);
+          topicStats[tag].ratings.push(
+            submission.rating,
+          );
         }
       }
     }
 
     const stats: {
-  topic: string;
-  totalAttempts: number;
-  successCount: number;
-  failureCount: number;
-  successRate: number;
-  averageRating: number;
-}[] = [];
+      topic: string;
+      totalAttempts: number;
+      successCount: number;
+      failureCount: number;
+      successRate: number;
+      averageRating: number;
+    }[] = [];
 
-    for (const [topic, data] of Object.entries(topicStats)) {
+    for (const [topic, data] of Object.entries(
+      topicStats,
+    )) {
       const successRate =
         data.attempts > 0
-          ? (data.successes / data.attempts) * 100
+          ? (data.successes /
+              data.attempts) *
+            100
           : 0;
 
       const averageRating =
         data.ratings.length > 0
-          ? data.ratings.reduce((a, b) => a + b, 0) /
-            data.ratings.length
+          ? data.ratings.reduce(
+              (a, b) => a + b,
+              0,
+            ) / data.ratings.length
           : 0;
 
       stats.push({
@@ -155,7 +238,8 @@ export class AnalyticsService {
     }
 
     return stats.sort(
-      (a, b) => b.totalAttempts - a.totalAttempts,
+      (a, b) =>
+        b.totalAttempts - a.totalAttempts,
     );
   }
 
@@ -164,17 +248,21 @@ export class AnalyticsService {
     days = 30,
   ) {
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(
+      startDate.getDate() - days,
+    );
 
-    const submissions = await this.submissionsRepository.find({
-      where: {
-        userId,
-        submittedAt: MoreThan(startDate),
-      },
-      order: {
-        submittedAt: 'ASC',
-      },
-    });
+    const submissions =
+      await this.submissionsRepository.find({
+        where: {
+          userId,
+          submittedAt:
+            MoreThan(startDate),
+        },
+        order: {
+          submittedAt: 'ASC',
+        },
+      });
 
     const dailyStats: Record<
       string,
@@ -185,9 +273,10 @@ export class AnalyticsService {
     > = {};
 
     for (const submission of submissions) {
-      const dateStr = submission.submittedAt
-        .toISOString()
-        .split('T')[0];
+      const dateStr =
+        submission.submittedAt
+          .toISOString()
+          .split('T')[0];
 
       if (!dailyStats[dateStr]) {
         dailyStats[dateStr] = {
@@ -196,18 +285,20 @@ export class AnalyticsService {
         };
       }
 
-      dailyStats[dateStr].submissionCount++;
+      dailyStats[dateStr]
+        .submissionCount++;
 
       if (submission.verdict === 'OK') {
-        dailyStats[dateStr].acceptedCount++;
+        dailyStats[dateStr]
+          .acceptedCount++;
       }
     }
 
-    return Object.entries(dailyStats).map(
-      ([date, stats]) => ({
-        date,
-        ...stats,
-      }),
-    );
+    return Object.entries(
+      dailyStats,
+    ).map(([date, stats]) => ({
+      date,
+      ...stats,
+    }));
   }
 }
