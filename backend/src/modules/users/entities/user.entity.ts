@@ -32,7 +32,7 @@ export class User {
 
   @Column({ nullable: true })
   cfHandle!: string;
-
+  
   @Column({ nullable: true })
   ccHandle!: string;
 

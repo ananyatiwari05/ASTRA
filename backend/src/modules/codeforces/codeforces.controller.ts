@@ -1,12 +1,44 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Param,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { CodeforcesService } from './codeforces.service';
+import { UsersService } from '../users/users.service';
 
-@Controller('cf') 
+@Controller('codeforces')
 export class CodeforcesController {
-  constructor(private readonly codeforcesService: CodeforcesService) {}
+  constructor(
+    private readonly codeforcesService: CodeforcesService,
+    private readonly usersService: UsersService,
+  ) {}
 
-  @Get(':handle')
-  async getUser(@Param('handle') handle: string) {
-    return this.codeforcesService.getUserData(handle);
+  @Post('sync/:userId')
+  async syncUser(
+    @Param('userId') userId: string,
+  ) {
+    const user =
+      await this.usersService.findOne(
+        parseInt(userId, 10),
+      );
+
+    if (!user) {
+      throw new NotFoundException(
+        'User not found',
+      );
+    }
+
+    if (!user.codeforcesHandle) {
+      throw new NotFoundException(
+        'Codeforces handle not found',
+      );
+    }
+
+    return this.codeforcesService.syncUser(
+      user.codeforcesHandle,
+      user,
+    );
   }
 }
