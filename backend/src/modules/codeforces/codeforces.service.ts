@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import axios from 'axios';
@@ -11,22 +14,25 @@ import { User } from '../users/entities/user.entity';
 export class CodeforcesService {
   constructor(
     @InjectRepository(Submission)
-    private submissionRepo: Repository<Submission>,
+    private readonly submissionRepo: Repository<Submission>,
 
     @InjectRepository(Contest)
-    private contestRepo: Repository<Contest>,
+    private readonly contestRepo: Repository<Contest>,
 
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepo: Repository<User>,
   ) {}
 
-  async findOne(id: number) {
-    return this.userRepository.findOne({
+  async findUserById(id: number): Promise<User | null> {
+    return this.userRepo.findOne({
       where: { id },
     });
   }
 
-  async syncUser(handle: string, user: User) {
+  async syncUser(
+    handle: string,
+    user: User,
+  ): Promise<{ message: string }> {
     const submissionsRes = await axios.get(
       `https://codeforces.com/api/user.status?handle=${handle}`,
     );
@@ -35,8 +41,10 @@ export class CodeforcesService {
       `https://codeforces.com/api/user.rating?handle=${handle}`,
     );
 
-    // Save submissions
-    for (const sub of submissionsRes.data.result) {
+    const submissions = submissionsRes.data.result;
+    const contests = contestsRes.data.result;
+
+    for (const sub of submissions) {
       await this.submissionRepo.save({
         user,
         userId: user.id,
@@ -45,12 +53,13 @@ export class CodeforcesService {
         problemName: sub.problem.name,
         verdict: sub.verdict,
         language: sub.programmingLanguage,
-        submittedAt: new Date(sub.creationTimeSeconds * 1000),
+        submittedAt: new Date(
+          sub.creationTimeSeconds * 1000,
+        ),
       });
     }
 
-    // Save contests
-    for (const contest of contestsRes.data.result) {
+    for (const contest of contests) {
       await this.contestRepo.save({
         user,
         contestId: contest.contestId,
@@ -62,17 +71,35 @@ export class CodeforcesService {
     }
 
     return {
-      message: 'Sync complete',
+      message: 'Codeforces sync completed successfully',
     };
   }
 
-  async syncByUserId(userId: number) {
-    const user = await this.findOne(userId);
+  async syncByUserId(
+    userId: number,
+  ): Promise<{ message: string }> {
+    const user = await this.findUserById(userId);
 
-    if (!user || !user.cfHandle) {
-      throw new Error('User or Codeforces handle not found');
+    if (!user) {
+      throw new NotFoundException(
+        'User not found',
+      );
+    }
+
+    if (!user.cfHandle) {
+      throw new NotFoundException(
+        'Codeforces handle not found',
+      );
     }
 
     return this.syncUser(user.cfHandle, user);
+  }
+
+  async getUserData(handle: string) {
+    const response = await axios.get(
+      `https://codeforces.com/api/user.info?handles=${handle}`,
+    );
+
+    return response.data.result[0];
   }
 }

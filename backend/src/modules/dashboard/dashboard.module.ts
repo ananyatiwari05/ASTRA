@@ -18,7 +18,6 @@ import { SubmissionsModule } from '../submissions/submissions.module';
     CodeforcesModule,
     LeetcodeModule,
     CodechefModule,
-
   ],
   controllers: [DashboardController],
   providers: [DashboardService],

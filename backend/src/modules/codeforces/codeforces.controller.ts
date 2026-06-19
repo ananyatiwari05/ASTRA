@@ -30,14 +30,14 @@ export class CodeforcesController {
       );
     }
 
-    if (!user.codeforcesHandle) {
+    if (!user.cfHandle) {
       throw new NotFoundException(
         'Codeforces handle not found',
       );
     }
 
     return this.codeforcesService.syncUser(
-      user.codeforcesHandle,
+      user.cfHandle,
       user,
     );
   }

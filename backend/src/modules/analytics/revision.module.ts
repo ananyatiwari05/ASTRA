@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AnalyticsService } from './analytics.service';
-import { AnalyticsController } from './analytics.controller';
+import { RevisionService } from './revision.service';
+import { RevisionController } from './revision.controller';
 
 import { Submission } from '../submissions/entities/submission.entity';
 import { Problem } from '../problems/entities/problem.entity';
@@ -14,8 +14,8 @@ import { Problem } from '../problems/entities/problem.entity';
       Problem,
     ]),
   ],
-  controllers: [AnalyticsController],
-  providers: [AnalyticsService],
-  exports: [AnalyticsService],
+  controllers: [RevisionController],
+  providers: [RevisionService],
+  exports: [RevisionService],
 })
-export class AnalyticsModule {}
+export class RevisionModule {}

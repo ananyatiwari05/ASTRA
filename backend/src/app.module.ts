@@ -14,6 +14,7 @@ import { ContestsModule } from './modules/contests/contests.module';
 import { AnalyticsService } from './modules/analytics/analytics.service';
 import { AnalyticsController } from './modules/analytics/analytics.controller';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { RevisionModule } from './modules/analytics/revision.module';
 
 @Module({
   imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
@@ -43,8 +44,8 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     DashboardModule,
     ContestsModule,
     AnalyticsModule,
+    RevisionModule
   ],
-  providers: [AnalyticsService],
   controllers: [AnalyticsController]
 })
 export class AppModule {}
