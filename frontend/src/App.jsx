@@ -7,6 +7,7 @@ import Sheets from './pages/Sheets';
 import A2ZSheet from './pages/A2ZSheet';
 import ContestRadar from './pages/ContestRadar';
 import OAuthSuccess from './pages/OAuthSuccess';
+import Analytics from './pages/Analytics';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/sheets" element={<Sheets />} />
         <Route path="/sheets/a2z" element={<A2ZSheet />} />
+        <Route path="/analytics" element={<Analytics />} />
       </Routes>
     </BrowserRouter>
   );

@@ -7,6 +7,7 @@ import { NavLink } from 'react-router-dom';
 export default function Sidebar() {
   const navItems = [
     { name: 'DASHBOARD', path: '/dashboard' },
+    { name: 'ANALYTICS', path: '/analytics' },
     { name: 'CONTEST RADAR', path: '/contest-radar' },
     { name: 'SHEETS', path: '/sheets' },
   ];
