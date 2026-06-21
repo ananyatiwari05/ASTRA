@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api, { API_BASE_URL } from '../api/client';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
 
@@ -23,7 +23,7 @@ function LoginPage() {
   const handleLogin = async () => {
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:3000/auth/login', {
+      const res = await api.post('/auth/login', {
         email,
         password,
       });
@@ -55,13 +55,10 @@ function LoginPage() {
 
     try {
       setLoading(true);
-      const res = await axios.post(
-        'http://localhost:3000/auth/register',
-        {
-          email,
-          password,
-        }
-      );
+      const res = await api.post('/auth/register', {
+        email,
+        password,
+      });
       localStorage.setItem(
         'userId',
         res.data.user.id
@@ -81,13 +78,11 @@ function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href =
-      'http://localhost:3000/auth/google';
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   const handleGithubLogin = () => {
-    window.location.href =
-      'http://localhost:3000/auth/github';
+    window.location.href = `${API_BASE_URL}/auth/github`;
   };
 
   return (

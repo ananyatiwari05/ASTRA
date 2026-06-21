@@ -5,9 +5,16 @@ import { AnalyticsService } from './analytics.service';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
+  @Get('user/:userId')
+  async getUserAnalytics(@Param('userId') userId: string) {
+    return this.analyticsService.getUserAnalytics(parseInt(userId, 10));
+  }
+
   @Get('user/:userId/weaknesses')
   async getUserWeaknesses(@Param('userId') userId: string) {
-    return this.analyticsService.getUserWeaknesses(parseInt(userId, 10));
+    return this.analyticsService.getDetailedWeaknesses(
+      parseInt(userId, 10),
+    );
   }
 
   @Get('user/:userId/topic-stats')

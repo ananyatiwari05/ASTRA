@@ -5,6 +5,17 @@ import { RevisionService } from './revision.service';
 export class RevisionController {
   constructor(private readonly revisionService: RevisionService) {}
 
+  @Get('user/:userId')
+  async getRevisionQueue(
+    @Param('userId') userId: string,
+    @Query('limit') limit: string = '10',
+  ) {
+    return this.revisionService.getRevisionQueue(
+      parseInt(userId, 10),
+      parseInt(limit, 10) || 10,
+    );
+  }
+
   @Get('user/:userId/recommendations')
   async getRevisionRecommendations(
     @Param('userId') userId: string,
@@ -18,6 +29,8 @@ export class RevisionController {
 
   @Get('user/:userId/weak-topics')
   async getWeakTopicsForRevision(@Param('userId') userId: string) {
-    return this.revisionService.getWeakTopicsForRevision(parseInt(userId, 10));
+    return this.revisionService.getWeakTopicsForRevision(
+      parseInt(userId, 10),
+    );
   }
 }

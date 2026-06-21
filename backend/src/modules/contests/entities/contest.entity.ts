@@ -11,6 +11,9 @@ export class Contest {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column()
+  userId!: number;
+
   @ManyToOne(() => User)
   user!: User;
 

@@ -22,17 +22,29 @@ export class UsersController {
   @Patch(':id/handles')
   updateHandles(
     @Param('id') id: string,
-    @Body() body: any,
-  ) 
-  {
-    console.log('ID =', id);
-
-  console.log('BODY =', body);
+    @Body() body: { cfHandle?: string; ccHandle?: string; lcHandle?: string },
+  ) {
     return this.usersService.updateHandles(
       Number(id),
-      body.cfHandle,
-      body.ccHandle,
-      body.lcHandle,
+      body.cfHandle ?? '',
+      body.ccHandle ?? '',
+      body.lcHandle ?? '',
+    );
+  }
+
+  @Patch(':id/sheet-handles')
+  updateSheetHandles(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      a2zEmail?: string;
+      dailyEliminatorEmail?: string;
+    },
+  ) {
+    return this.usersService.updateSheetHandles(
+      Number(id),
+      body.a2zEmail,
+      body.dailyEliminatorEmail,
     );
   }
 }

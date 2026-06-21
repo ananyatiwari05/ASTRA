@@ -11,31 +11,32 @@ import { RatingsModule } from './modules/ratings/ratings.module';
 import { SubmissionsModule } from './modules/submissions/submissions.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { ContestsModule } from './modules/contests/contests.module';
-import { AnalyticsService } from './modules/analytics/analytics.service';
-import { AnalyticsController } from './modules/analytics/analytics.controller';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { RevisionModule } from './modules/analytics/revision.module';
+import { ProblemsModule } from './modules/problems/problems.module';
+import { SheetsModule } from './modules/sheets/sheets.module';
 
 @Module({
-  imports: [CodeforcesModule, CodechefModule, LeetcodeModule,
-  ConfigModule.forRoot({
+  imports: [
+    CodeforcesModule,
+    CodechefModule,
+    LeetcodeModule,
+    ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
-
     TypeOrmModule.forRootAsync({
-  useFactory: () => ({
-    type: 'postgres',
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    autoLoadEntities: true,
-    synchronize: true,
-  }),
-}),
-
+      useFactory: () => ({
+        type: 'postgres',
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
+    }),
     UsersModule,
     AuthModule,
     ProfilesModule,
@@ -44,8 +45,9 @@ import { RevisionModule } from './modules/analytics/revision.module';
     DashboardModule,
     ContestsModule,
     AnalyticsModule,
-    RevisionModule
+    RevisionModule,
+    ProblemsModule,
+    SheetsModule,
   ],
-  controllers: [AnalyticsController]
 })
 export class AppModule {}

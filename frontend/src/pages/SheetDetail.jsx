@@ -1,4 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
+import { FaFire } from 'react-icons/fa';
+
 import Sidebar from '../components/Sidebar';
 import ProgressCard from '../components/sheets/ProgressCard';
 import StatsCards from '../components/sheets/StatsCards';
@@ -6,41 +10,71 @@ import SheetFilters from '../components/sheets/SheetFilters';
 import TopicProgress from '../components/sheets/TopicProgress';
 import ProblemTable from '../components/sheets/ProblemTable';
 import RecentActivity from '../components/sheets/RecentActivity';
-import { motion } from 'framer-motion';
-import { FiArrowLeft } from 'react-icons/fi';
-import { FaFire } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
 import {
-  fetchSheetProblems,
-  fetchDashboard,
   fetchProgressTrend,
+  fetchSheetProblems,
+  fetchSheetProgress,
   fetchUserSubmissions,
   getUserId,
 } from '../api/client';
 
+const SHEET_META = {
+  A2Z: {
+    title: 'A2Z DSA Sheet',
+    description:
+      'Master DSA from basics to advanced structures step by step.',
+  },
+  TUF: {
+    title: 'TUF Sheet',
+    description: 'Take U Forward curated DSA problem set.',
+  },
+  TLE: {
+    title: 'TLE Eliminator Sheet',
+    description: 'Daily TLE Eliminator progress synced from Google Sheets.',
+  },
+  CP: {
+    title: 'Striver CP Sheet',
+    description: 'Competitive programming problems for contest prep.',
+  },
+  '31': {
+    title: 'Striver 31 Sheet',
+    description: 'Blind 75 / 31 essential interview problems.',
+  },
+};
+
 const DIFFICULTY_LABELS = {
+  0: 'Unknown',
   1: 'Easy',
   2: 'Medium',
   3: 'Hard',
 };
 
-function mapProblem(problem, solvedKeys) {
-  const key = `${problem.platform}:${problem.problemId}`;
-
+function mapProblem(problem) {
   return {
-    id: problem.id,
+    id: `${problem.platform}-${problem.problemId}`,
     title: problem.title,
     topic: problem.tags?.[0] || 'General',
+    tags: problem.tags || [],
     difficulty:
       DIFFICULTY_LABELS[problem.difficulty] ||
       String(problem.difficulty || 'Medium'),
     platform: problem.platform,
-    solved: solvedKeys.has(key),
+    solved: Boolean(problem.solved),
     url: problem.url,
+    verdict: problem.verdict,
+    lastSolvedAt: problem.lastSolvedAt,
+    source: problem.source || null,
   };
 }
 
-export default function A2ZSheet() {
+export default function SheetDetail() {
+  const { sheetName = 'A2Z' } = useParams();
+  const normalizedSheetName = sheetName.toUpperCase();
+  const meta = SHEET_META[normalizedSheetName] || {
+    title: `${normalizedSheetName} Sheet`,
+    description: 'Curated problem sheet progress.',
+  };
+
   const [problems, setProblems] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -54,7 +88,7 @@ export default function A2ZSheet() {
 
   useEffect(() => {
     loadSheetData();
-  }, []);
+  }, [normalizedSheetName]);
 
   const loadSheetData = async () => {
     try {
@@ -62,63 +96,49 @@ export default function A2ZSheet() {
       setError('');
 
       const userId = getUserId();
-      const sheetProblems = await fetchSheetProblems('A2Z');
-
-      let solvedKeys = new Set();
+      let sheetProblems = [];
 
       if (userId) {
-        const dashboard = await fetchDashboard(userId);
-        const submissions =
-          dashboard.submissions ||
-          dashboard.recentSubmissions ||
-          [];
-
-        solvedKeys = new Set(
-          submissions
-            .filter(
-              (item) =>
-                item.verdict === 'OK' ||
-                item.verdict === 'Accepted',
-            )
-            .map(
-              (item) =>
-                `${item.platform}:${item.problemId || item.problemName}`,
-            ),
+        const progressData = await fetchSheetProgress(userId);
+        const sheetProgress = progressData.find(
+          (sheet) =>
+            sheet.sheetName.toUpperCase() === normalizedSheetName,
         );
 
-        const dbSubmissions = await fetchUserSubmissions(userId);
-
-        for (const submission of dbSubmissions) {
-          if (
-            submission.verdict === 'OK' ||
-            submission.verdict === 'Accepted'
-          ) {
-            solvedKeys.add(
-              `${submission.platform}:${submission.problemId}`,
-            );
-          }
-        }
+        sheetProblems = sheetProgress?.problems || [];
 
         const trend = await fetchProgressTrend(userId, 30);
         setCurrentStreak(trend.currentStreak || 0);
 
+        const submissions = await fetchUserSubmissions(userId);
         setRecentActivities(
           submissions.slice(0, 5).map((item, index) => ({
             id: index,
             title: item.problemName,
-            timestamp: item.time || 'Recent',
+            timestamp: item.submittedAt
+              ? new Date(item.submittedAt).toLocaleString()
+              : 'Recent',
           })),
         );
       }
 
-      setProblems(
-        sheetProblems.map((problem) =>
-          mapProblem(problem, solvedKeys),
-        ),
-      );
+      if (!sheetProblems.length) {
+        const catalogProblems = await fetchSheetProblems(
+          normalizedSheetName,
+        );
+
+        sheetProblems = catalogProblems.map((problem) => ({
+          ...problem,
+          solved: false,
+          verdict: null,
+          lastSolvedAt: null,
+        }));
+      }
+
+      setProblems(sheetProblems.map(mapProblem));
     } catch (err) {
       console.error(err);
-      setError('Failed to load A2Z sheet');
+      setError('Failed to load sheet data');
     } finally {
       setIsLoading(false);
     }
@@ -138,20 +158,12 @@ export default function A2ZSheet() {
       ? Math.round((solvedCount / totalProblems) * 100)
       : 0;
 
-  const toggleSolved = (id) => {
-    setProblems((prevProblems) =>
-      prevProblems.map((problem) =>
-        problem.id === id
-          ? { ...problem, solved: !problem.solved }
-          : problem,
-      ),
-    );
-  };
-
   const filteredProblems = problems.filter((problem) => {
-    const matchesSearch = problem.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      problem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      problem.tags.some((tag) =>
+        tag.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
     const matchesTopic =
       selectedTopic === 'All' || problem.topic === selectedTopic;
     const matchesDifficulty =
@@ -195,20 +207,31 @@ export default function A2ZSheet() {
                   <FiArrowLeft /> SHEETS
                 </Link>
                 <span className="text-gray-500">/</span>
-                <span className="text-gray-500">A2Z</span>
+                <span className="text-gray-500">{normalizedSheetName}</span>
               </div>
               <h1 className="text-3xl font-black tracking-tight text-white uppercase">
-                A2Z DSA Sheet
+                {meta.title}
               </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                Master DSA from Basics to Advanced structures step by step.
-              </p>
+              <p className="text-sm text-gray-400 mt-1">{meta.description}</p>
             </div>
+
+            <button
+              onClick={loadSheetData}
+              className="px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-sm"
+            >
+              Refresh
+            </button>
           </div>
 
           {error && (
-            <div className="rounded border border-red-800 bg-red-950/40 px-4 py-3 text-red-300">
-              {error}
+            <div className="rounded border border-red-800 bg-red-950/40 px-4 py-3 text-red-300 flex items-center justify-between gap-4">
+              <span>{error}</span>
+              <button
+                onClick={loadSheetData}
+                className="text-sm underline hover:text-red-200"
+              >
+                Retry
+              </button>
             </div>
           )}
 
@@ -238,10 +261,7 @@ export default function A2ZSheet() {
             topics={uniqueTopics}
           />
 
-          <ProblemTable
-            problems={filteredProblems}
-            onToggleSolved={toggleSolved}
-          />
+          <ProblemTable problems={filteredProblems} readOnly />
         </div>
 
         <div className="w-full xl:w-80 border-t xl:border-t-0 xl:border-l border-gray-900 p-6 space-y-6 bg-gray-950/20 backdrop-blur-sm shrink-0">

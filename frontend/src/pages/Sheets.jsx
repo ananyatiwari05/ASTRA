@@ -1,63 +1,75 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import SheetCard from '../components/sheets/SheetCard';
-import { a2zProblems } from '../data/a2zMock';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import {
+  fetchSheetProgress,
+  fetchSheets,
+  getUserId,
+} from '../api/client';
+
+const SHEET_PATHS = {
+  A2Z: '/sheets/A2Z',
+  TUF: '/sheets/TUF',
+  TLE: '/sheets/TLE',
+  CP: '/sheets/CP',
+  '31': '/sheets/31',
+};
+
+const SHEET_TITLES = {
+  A2Z: 'A2Z DSA Sheet',
+  TUF: 'TUF Sheet',
+  TLE: 'TLE Eliminator Sheet',
+  CP: 'Striver CP Sheet',
+  '31': 'Striver 31 Sheet',
+};
 
 export default function Sheets() {
-  const [a2zSolvedCount, setA2zSolvedCount] = useState(0);
-  const [totalA2zProblems, setTotalA2zProblems] = useState(a2zProblems.length);
+  const [sheets, setSheets] = useState([]);
+  const [sheetProgress, setSheetProgress] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadProgress = async () => {
-      // 1. Try to fetch real progress from backend if logged in
-      const userId = localStorage.getItem('userId');
-      if (userId) {
-        try {
-          const res = await axios.get(`http://localhost:3000/dashboard/${userId}`);
-          const lcData = res.data.user?.leetcode;
-          if (lcData) {
-            const solved = (lcData.easySolved || 0) + (lcData.mediumSolved || 0) + (lcData.hardSolved || 0);
-            setA2zSolvedCount(solved);
-            setTotalA2zProblems(455); // Real A2Z has 455 problems
-            return;
-          }
-        } catch (err) {
-          console.warn("Could not fetch real LeetCode stats on sheets landing", err);
-        }
-      }
-
-      // 2. Fallback to localStorage progress
-      try {
-        const storedSolvedIds = localStorage.getItem('astra_a2z_solved_ids');
-        if (storedSolvedIds) {
-          const solvedIds = JSON.parse(storedSolvedIds);
-          // Count how many of our mock problems are solved
-          const solvedCount = a2zProblems.filter(p => solvedIds.includes(p.id)).length;
-          setA2zSolvedCount(solvedCount);
-        } else {
-          // Fallback to default solved state in mock data
-          const solvedCount = a2zProblems.filter(p => p.solved).length;
-          setA2zSolvedCount(solvedCount);
-        }
-      } catch (err) {
-        console.error("Error loading progress in sheets landing page", err);
-      }
-    };
-
-    loadProgress();
+    loadSheets();
   }, []);
+
+  const loadSheets = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+
+      const sheetList = await fetchSheets();
+      setSheets(sheetList);
+
+      const userId = getUserId();
+
+      if (userId) {
+        const progressData = await fetchSheetProgress(userId);
+        const progressMap = {};
+
+        for (const sheet of progressData) {
+          progressMap[sheet.sheetName] = {
+            total: sheet.totalProblems,
+            solved: sheet.solvedProblems,
+          };
+        }
+
+        setSheetProgress(progressMap);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load sheets');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-black text-white">
-      {/* Sidebar Navigation */}
       <Sidebar />
 
-      {/* Main Content Area */}
       <div className="flex-1 p-6 lg:p-8 space-y-8 overflow-y-auto">
-        
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -76,30 +88,37 @@ export default function Sheets() {
           </p>
         </motion.div>
 
-        {/* Sheets Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <SheetCard
-            title="A2Z DSA Sheet"
-            totalProblems={totalA2zProblems}
-            solvedCount={a2zSolvedCount}
-            path="/sheets/a2z"
-          />
+        {error && (
+          <div className="rounded border border-red-800 bg-red-950/40 px-4 py-3 text-red-300">
+            {error}
+          </div>
+        )}
 
-          <SheetCard
-            title="Blind 75"
-            comingSoon={true}
-          />
+        {isLoading ? (
+          <p className="text-gray-400">Loading sheets...</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {sheets.map((sheet) => {
+              const progress = sheetProgress[sheet.name] || {};
+              const path = SHEET_PATHS[sheet.name];
+              const title =
+                SHEET_TITLES[sheet.name] || `${sheet.name} Sheet`;
 
-          <SheetCard
-            title="Striver CP Sheet"
-            comingSoon={true}
-          />
-
-          <SheetCard
-            title="Striver 31 Sheet"
-            comingSoon={true}
-          />
-        </div>
+              return (
+                <SheetCard
+                  key={sheet.name}
+                  title={title}
+                  totalProblems={
+                    progress.total || sheet.totalProblems || 0
+                  }
+                  solvedCount={progress.solved || 0}
+                  path={path}
+                  comingSoon={false}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

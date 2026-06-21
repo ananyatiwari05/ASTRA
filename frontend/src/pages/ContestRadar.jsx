@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import { fetchUpcomingContests } from '../api/client';
 
 import Sidebar from '../components/Sidebar';
 import ContestStats from '../components/contests/ContestStats';
@@ -16,11 +16,8 @@ export default function ContestRadar() {
   useEffect(() => {
     const fetchContests = async () => {
       try {
-        const res = await axios.get(
-          'http://localhost:3000/contests/upcoming'
-        );
-
-        setContests(res.data);
+        const data = await fetchUpcomingContests();
+        setContests(data);
       } catch (err) {
         console.error('Failed to fetch contests', err);
       } finally {

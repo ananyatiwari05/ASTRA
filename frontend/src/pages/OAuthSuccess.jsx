@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 export default function OAuthSuccess() {
   const navigate = useNavigate();
@@ -26,14 +26,7 @@ export default function OAuthSuccess() {
       );
 
       try {
-        const res = await axios.get(
-          'http://localhost:3000/auth/me',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await api.get('/auth/me');
 
         localStorage.setItem(
           'userId',

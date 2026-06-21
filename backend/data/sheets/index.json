@@ -1,0 +1,254 @@
+[
+  {
+    "sheet": "A2Z",
+    "problems": [
+      {
+        "platform": "leetcode",
+        "title": "Maximum Subarray",
+        "topic": "Arrays",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/maximum-subarray/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Reverse Linked List",
+        "topic": "Linked List",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/reverse-linked-list/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Binary Search",
+        "topic": "Binary Search",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/binary-search/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Climbing Stairs",
+        "topic": "DP",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/climbing-stairs/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Number of Islands",
+        "topic": "Graphs",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/number-of-islands/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "House Robber",
+        "topic": "DP",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/house-robber/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Move Zeroes",
+        "topic": "Arrays",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/move-zeroes/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Rotate Array",
+        "topic": "Arrays",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/rotate-array/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Merge Two Sorted Lists",
+        "topic": "Linked List",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/merge-two-sorted-lists/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Maximum Depth of Binary Tree",
+        "topic": "Trees",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Longest Common Subsequence",
+        "topic": "DP",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/longest-common-subsequence/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Search in Rotated Sorted Array",
+        "topic": "Binary Search",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/search-in-rotated-sorted-array/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "N-Queens",
+        "topic": "Recursion",
+        "difficulty": "Hard",
+        "url": "https://leetcode.com/problems/n-queens/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Jump Game",
+        "topic": "Greedy",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/jump-game/"
+      },
+      {
+        "platform": "gfg",
+        "title": "Second Largest Element in Array",
+        "topic": "Arrays",
+        "difficulty": "Easy",
+        "url": "https://www.geeksforgeeks.org/problems/second-largest3735/1"
+      }
+    ]
+  },
+  {
+    "sheet": "TUF",
+    "problems": [
+      {
+        "platform": "leetcode",
+        "title": "Maximum Subarray",
+        "topic": "Arrays",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/maximum-subarray/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Binary Search",
+        "topic": "binary search",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/binary-search/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Climbing Stairs",
+        "topic": "Dynamic Programming",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/climbing-stairs/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Two Sum",
+        "topic": "Arrays",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/two-sum/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Valid Parentheses",
+        "topic": "Stack",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/valid-parentheses/"
+      }
+    ]
+  },
+  {
+    "sheet": "CP",
+    "problems": [
+      {
+        "platform": "codeforces",
+        "title": "Way Too Long Words",
+        "topic": "Implementation",
+        "difficulty": "Easy",
+        "url": "https://codeforces.com/problemset/problem/71/A",
+        "problemId": "71-A"
+      },
+      {
+        "platform": "codeforces",
+        "title": "Team",
+        "topic": "Implementation",
+        "difficulty": "Easy",
+        "url": "https://codeforces.com/problemset/problem/231/A",
+        "problemId": "231-A"
+      },
+      {
+        "platform": "codeforces",
+        "title": "Beautiful Matrix",
+        "topic": "Implementation",
+        "difficulty": "Easy",
+        "url": "https://codeforces.com/problemset/problem/263/A",
+        "problemId": "263-A"
+      }
+    ]
+  },
+  {
+    "sheet": "31",
+    "problems": [
+      {
+        "platform": "leetcode",
+        "title": "Two Sum",
+        "topic": "Arrays",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/two-sum/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Valid Parentheses",
+        "topic": "Stack",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/valid-parentheses/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Merge Two Sorted Lists",
+        "topic": "Linked List",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/merge-two-sorted-lists/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Maximum Depth of Binary Tree",
+        "topic": "Trees",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/"
+      }
+    ]
+  },
+  {
+    "sheet": "TLE",
+    "problems": [
+      {
+        "platform": "leetcode",
+        "title": "Two Sum",
+        "topic": "Arrays",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/two-sum/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Valid Parentheses",
+        "topic": "Stack",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/valid-parentheses/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Climbing Stairs",
+        "topic": "DP",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/climbing-stairs/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "Number of Islands",
+        "topic": "Graphs",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/number-of-islands/"
+      },
+      {
+        "platform": "leetcode",
+        "title": "House Robber",
+        "topic": "DP",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/house-robber/"
+      }
+    ]
+  }
+]

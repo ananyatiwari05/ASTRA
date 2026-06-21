@@ -38,6 +38,22 @@ export class User {
 
   @Column({ nullable: true })
   lcHandle!: string;
+
+  @Column({ nullable: true })
+  a2zEmail!: string;
+
+  @Column({ nullable: true })
+  TLEliminatorEmail!: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  cfLastSyncedAt!: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  a2zLastSyncedAt!: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  tleLastSyncedAt!: Date | null;
+
   @OneToOne(
     () => CompetitiveProfile,
     (profile) => profile.user,

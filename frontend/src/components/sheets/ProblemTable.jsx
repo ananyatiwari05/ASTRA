@@ -1,7 +1,7 @@
 import React from 'react';
 import { FiExternalLink, FiCheck } from 'react-icons/fi';
 
-export default function ProblemTable({ problems, onToggleSolved }) {
+export default function ProblemTable({ problems, onToggleSolved, readOnly = false }) {
   const getDifficultyStyles = (difficulty) => {
     switch (difficulty) {
       case "Easy":
@@ -59,28 +59,44 @@ export default function ProblemTable({ problems, onToggleSolved }) {
               >
                 {/* Checkbox Column */}
                 <td className="py-3.5 px-4 text-center">
-                  <button
-                    onClick={() => onToggleSolved(problem.id)}
-                    className={`mx-auto w-5 h-5 rounded flex items-center justify-center border transition-all ${
-                      problem.solved
-                        ? 'bg-emerald-500 border-emerald-400 text-black'
-                        : 'border-gray-700 hover:border-cyan-500 bg-gray-950 text-transparent'
-                    }`}
-                  >
-                    <FiCheck className="w-3.5 h-3.5 stroke-[3]" />
-                  </button>
+                  {readOnly ? (
+                    <div
+                      className={`mx-auto w-5 h-5 rounded flex items-center justify-center border ${
+                        problem.solved
+                          ? 'bg-emerald-500 border-emerald-400 text-black'
+                          : 'border-gray-700 bg-gray-950 text-transparent'
+                      }`}
+                    >
+                      <FiCheck className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => onToggleSolved?.(problem.id)}
+                      className={`mx-auto w-5 h-5 rounded flex items-center justify-center border transition-all ${
+                        problem.solved
+                          ? 'bg-emerald-500 border-emerald-400 text-black'
+                          : 'border-gray-700 hover:border-cyan-500 bg-gray-950 text-transparent'
+                      }`}
+                    >
+                      <FiCheck className="w-3.5 h-3.5 stroke-[3]" />
+                    </button>
+                  )}
                 </td>
 
                 {/* Problem Title */}
                 <td className="py-3.5 px-4">
                   <div className="flex flex-col">
                     <span
-                      onClick={() => onToggleSolved(problem.id)}
-                      className={`text-sm font-semibold cursor-pointer select-none transition-colors ${
+                      className={`text-sm font-semibold select-none transition-colors ${
                         problem.solved
                           ? 'text-gray-400 line-through decoration-gray-600'
-                          : 'text-gray-100 hover:text-cyan-400'
-                      }`}
+                          : 'text-gray-100'
+                      } ${readOnly ? '' : 'cursor-pointer hover:text-cyan-400'}`}
+                      onClick={
+                        readOnly
+                          ? undefined
+                          : () => onToggleSolved?.(problem.id)
+                      }
                     >
                       {problem.title}
                     </span>

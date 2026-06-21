@@ -8,8 +8,10 @@ export default function Sidebar() {
   const navItems = [
     { name: 'DASHBOARD', path: '/dashboard' },
     { name: 'ANALYTICS', path: '/analytics' },
+    { name: 'REVISION', path: '/revision' },
     { name: 'CONTEST RADAR', path: '/contest-radar' },
     { name: 'SHEETS', path: '/sheets' },
+    { name: 'PROFILE', path: '/profile' },
   ];
 
   return (

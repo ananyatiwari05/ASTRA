@@ -2,19 +2,23 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
+  Index,
 } from 'typeorm';
 
 @Entity()
-export class Problem {
+@Index(['sheetName', 'sheetProblemId'], { unique: true })
+export class ProblemMap {
   @PrimaryGeneratedColumn()
   id!: number;
+
+  @Column()
+  sheetProblemId!: string;
 
   @Column()
   platform!: string;
 
   @Column()
-  problemId!: string;
+  platformProblemId!: string;
 
   @Column()
   title!: string;
@@ -25,12 +29,6 @@ export class Problem {
   @Column('simple-array')
   tags!: string[];
 
-  @Column('simple-array')
-  sheet!: string[];
-
-  @Column({ default: '' })
-  url!: string;
-
-  @CreateDateColumn()
-  createdAt!: Date;
+  @Column()
+  sheetName!: string;
 }

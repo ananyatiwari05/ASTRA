@@ -39,8 +39,6 @@ export class UsersService {
     ccHandle: string,
     lcHandle: string,
   ) {
-    console.log('Updating user:', id);
-
     await this.userRepo.update(id, {
       cfHandle,
       ccHandle,
@@ -48,5 +46,43 @@ export class UsersService {
     });
 
     return this.findById(id);
+  }
+
+  async updateSheetHandles(
+    id: number,
+    a2zEmail?: string,
+    dailyEliminatorEmail?: string,
+  ) {
+    const update: Partial<User> = {};
+
+    if (a2zEmail !== undefined) {
+      update.a2zEmail = a2zEmail || undefined;
+    }
+
+    if (dailyEliminatorEmail !== undefined) {
+      update.TLEliminatorEmail = dailyEliminatorEmail || undefined;
+    }
+
+    await this.userRepo.update(id, update);
+
+    return this.findById(id);
+  }
+
+  async updateCfLastSynced(id: number) {
+    await this.userRepo.update(id, {
+      cfLastSyncedAt: new Date(),
+    });
+  }
+
+  async updateA2zLastSynced(id: number) {
+    await this.userRepo.update(id, {
+      a2zLastSyncedAt: new Date(),
+    });
+  }
+
+  async updateTleLastSynced(id: number) {
+    await this.userRepo.update(id, {
+      tleLastSyncedAt: new Date(),
+    });
   }
 }

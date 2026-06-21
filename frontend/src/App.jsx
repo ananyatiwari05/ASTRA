@@ -1,10 +1,12 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import LoginPage from './pages/LoginPage';
 import Profile from './pages/Profile';
 import Sheets from './pages/Sheets';
-import A2ZSheet from './pages/A2ZSheet';
+import SheetDetail from './pages/SheetDetail';
+import Analytics from './pages/Analytics';
+import Revision from './pages/Revision';
 import ContestRadar from './pages/ContestRadar';
 import OAuthSuccess from './pages/OAuthSuccess';
 import Analytics from './pages/Analytics';
@@ -13,7 +15,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/revision" element={<Revision />} />
         <Route path="/contest-radar" element={<ContestRadar />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/oauth-success" element={<OAuthSuccess />} />
