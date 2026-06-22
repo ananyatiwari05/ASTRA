@@ -9,7 +9,7 @@ import Analytics from './pages/Analytics';
 import Revision from './pages/Revision';
 import ContestRadar from './pages/ContestRadar';
 import OAuthSuccess from './pages/OAuthSuccess';
-import Analytics from './pages/Analytics';
+import A2ZSheet from './pages/A2ZSheet';
 
 function App() {
   return (

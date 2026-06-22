@@ -8,61 +8,6 @@ import TopicRadarChart from '../components/analytics/TopicRadarChart';
 import ActivityHeatmap from '../components/analytics/ActivityHeatmap';
 import InsightsPanel from '../components/analytics/InsightsPanel';
 
-export default function Analytics() {
-  return (
-    <div className="min-h-screen bg-black text-white flex">
-      <Sidebar />
-
-      <main className="flex-1 px-8 py-10 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <AnalyticsHeader />
-          <StatsOverview />
-          <ProgressChart />
-          <TopicPerformanceChart />
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <WeaknessAnalysis />
-            <TopicRadarChart />
-          </div>
-
-          <ActivityHeatmap />
-          <InsightsPanel />
-        </div>
-      </main>
-    </div>
-  );
-}import React, { useEffect, useState } from 'react';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  CartesianGrid,
-} from 'recharts';
-
-import Sidebar from '../components/Sidebar';
-import {
-  fetchUserAnalytics,
-  fetchAnalyticsWeaknesses,
-  getUserId,
-} from '../api/client';
-
-const DIFFICULTY_COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6b7280'];
-
-function getWeaknessColor(successRate) {
-  if (successRate < 30) return 'bg-rose-500';
-  if (successRate < 50) return 'bg-amber-500';
-  if (successRate < 70) return 'bg-yellow-500';
-  return 'bg-emerald-500';
-}
 
 export default function Analytics() {
   const [analytics, setAnalytics] = useState(null);
