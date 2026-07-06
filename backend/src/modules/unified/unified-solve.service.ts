@@ -5,11 +5,8 @@ import { Repository } from 'typeorm';
 import { Submission } from '../submissions/entities/submission.entity';
 import { Problem } from '../problems/entities/problem.entity';
 import { Contest } from '../contests/entities/contest.entity';
-import {
-  SheetProgress,
-  SheetProgressSource,
-} from '../sheets/entities/sheet-progress.entity';
-import { ProblemMap } from '../sheets/entities/problem-map.entity';
+import { SheetProblem } from '../sheets/entities/sheet-problem.entity';
+import { UserSheetProgress } from '../sheets/entities/user-sheet-progress.entity';
 import {
   attachProblemsToSubmissions,
   buildProblemLookup,
@@ -49,15 +46,15 @@ export class UnifiedSolveService {
     @InjectRepository(Problem)
     private readonly problemRepo: Repository<Problem>,
 
-    @InjectRepository(SheetProgress)
-    private readonly sheetProgressRepo: Repository<SheetProgress>,
+    @InjectRepository(UserSheetProgress)
+    private readonly userSheetProgressRepo: Repository<UserSheetProgress>,
 
-    @InjectRepository(ProblemMap)
-    private readonly problemMapRepo: Repository<ProblemMap>,
+    @InjectRepository(SheetProblem)
+    private readonly sheetProblemRepo: Repository<SheetProblem>,
 
     @InjectRepository(Contest)
     private readonly contestRepo: Repository<Contest>,
-  ) {}
+  ) { }
 
   async getUnifiedSolvedProblems(
     userId: number,
@@ -101,10 +98,10 @@ export class UnifiedSolveService {
 
     const problems = problemIds.length
       ? await this.problemRepo
-          .createQueryBuilder('problem')
-          .where('problem.problemId IN (:...problemIds)', { problemIds })
-          .andWhere('problem.platform IN (:...platforms)', { platforms })
-          .getMany()
+        .createQueryBuilder('problem')
+        .where('problem.problemId IN (:...problemIds)', { problemIds })
+        .andWhere('problem.platform IN (:...platforms)', { platforms })
+        .getMany()
       : [];
 
     const enriched = attachProblemsToSubmissions(
@@ -138,7 +135,12 @@ export class UnifiedSolveService {
       { solved: number; attempted: number; failed: number }
     > = {};
 
+    const processedCFProblems = new Set<string>();
+
     for (const attempt of attempts) {
+      const key = `${attempt.platform}:${attempt.problemId}`;
+      processedCFProblems.add(key);
+
       for (const tag of attempt.tags) {
         const topic = normalizeTag(tag);
         if (!topic) continue;
@@ -158,21 +160,19 @@ export class UnifiedSolveService {
     }
 
     for (const problem of solved) {
-      if (problem.source === SheetProgressSource.A2Z) {
-        for (const tag of problem.tags) {
-          const topic = normalizeTag(tag);
-          if (!topic) continue;
+      const key = `${problem.platform}:${problem.problemId}`;
+      if (processedCFProblems.has(key)) continue;
 
-          if (!topicStats[topic]) {
-            topicStats[topic] = { solved: 0, attempted: 0, failed: 0 };
-          }
+      for (const tag of problem.tags) {
+        const topic = normalizeTag(tag);
+        if (!topic) continue;
 
-          const key = `${problem.platform}:${problem.problemId}`;
-
-          if (!solvedKeys.has(key)) continue;
-
-          topicStats[topic].solved++;
+        if (!topicStats[topic]) {
+          topicStats[topic] = { solved: 0, attempted: 0, failed: 0 };
         }
+
+        topicStats[topic].solved++;
+        topicStats[topic].attempted++;
       }
     }
 
@@ -274,10 +274,10 @@ export class UnifiedSolveService {
 
     const problems = problemIds.length
       ? await this.problemRepo
-          .createQueryBuilder('problem')
-          .where('problem.problemId IN (:...problemIds)', { problemIds })
-          .andWhere('problem.platform IN (:...platforms)', { platforms })
-          .getMany()
+        .createQueryBuilder('problem')
+        .where('problem.problemId IN (:...problemIds)', { problemIds })
+        .andWhere('problem.platform IN (:...platforms)', { platforms })
+        .getMany()
       : [];
 
     const problemMap = buildProblemLookup(problems);
@@ -315,51 +315,40 @@ export class UnifiedSolveService {
   private async getSheetSolved(
     userId: number,
   ): Promise<UnifiedSolvedProblem[]> {
-    const progress = await this.sheetProgressRepo.find({
+    const progress = await this.userSheetProgressRepo.find({
       where: { userId, isSolved: true },
+      relations: {
+        sheetProblem: true,
+      },
     });
 
-    if (!progress.length) {
-      return [];
-    }
+    return progress
+      .map((p) => {
+        const sp = p.sheetProblem;
+        if (!sp) return null;
 
-    const maps = await this.problemMapRepo.find();
-    const mapLookup = new Map(
-      maps.map((entry) => [
-        `${entry.sheetName}:${entry.sheetProblemId}`,
-        entry,
-      ]),
-    );
+        let diffNum = 0;
+        if (typeof sp.difficulty === 'string') {
+          const d = sp.difficulty.toLowerCase();
+          if (d === 'easy') diffNum = 1;
+          else if (d === 'medium') diffNum = 2;
+          else if (d === 'hard') diffNum = 3;
+        } else {
+          diffNum = Number(sp.difficulty ?? 0);
+        }
 
-    const problems = await this.problemRepo.find();
-    const platformLookup = buildProblemLookup(problems);
-
-    const result: UnifiedSolvedProblem[] = [];
-
-    for (const entry of progress) {
-      const mapEntry = mapLookup.get(
-        `${entry.sheetName}:${entry.problemId}`,
-      );
-
-      if (!mapEntry) continue;
-
-      const platformProblem = platformLookup.get(
-        `${mapEntry.platform}:${mapEntry.platformProblemId}`,
-      );
-
-      result.push({
-        problemId: mapEntry.platformProblemId,
-        platform: mapEntry.platform,
-        title: mapEntry.title,
-        tags: mapEntry.tags ?? platformProblem?.tags ?? [],
-        difficulty: mapEntry.difficulty ?? platformProblem?.difficulty ?? 0,
-        source: entry.source,
-        solvedAt: entry.solvedAt,
-        url: platformProblem?.url ?? '',
-      });
-    }
-
-    return result;
+        return {
+          problemId: sp.problemId,
+          platform: sp.platform,
+          title: sp.title,
+          tags: sp.tags ?? [],
+          difficulty: diffNum,
+          source: p.sheetName,
+          solvedAt: p.solvedAt,
+          url: sp.sourceUrl ?? '',
+        };
+      })
+      .filter((x): x is UnifiedSolvedProblem => x !== null);
   }
 
   private async getContestSolved(

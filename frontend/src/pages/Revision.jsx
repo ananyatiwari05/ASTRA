@@ -147,6 +147,13 @@ export default function Revision() {
                       {DIFFICULTY_LABELS[item.difficulty] ||
                         item.difficulty}
                     </span>
+                    <span className={`px-2 py-1 rounded border ${
+                      item.priority === 'high' ? 'bg-red-950/40 text-red-300 border-red-900/30' :
+                      item.priority === 'medium' ? 'bg-yellow-950/40 text-yellow-300 border-yellow-900/30' :
+                      'bg-gray-800 text-gray-300 border-gray-700'
+                    }`}>
+                      {(item.priority || 'low').toUpperCase()} PRIORITY
+                    </span>
                     <span className="px-2 py-1 rounded bg-orange-950/40 text-orange-300 border border-orange-900/30">
                       {item.reason ||
                         `${item.daysSinceLastAttempt ?? 0}d since last solve`}

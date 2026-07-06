@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Problem } from '../problems/entities/problem.entity';
 import { Submission } from '../submissions/entities/submission.entity';
-import { SheetProgress } from '../sheets/entities/sheet-progress.entity';
 import { ProblemMap } from '../sheets/entities/problem-map.entity';
+import { UserSheetProgress } from '../sheets/entities/user-sheet-progress.entity';
 import { ProgressService } from './progress.service';
 
 @Module({
@@ -12,7 +12,7 @@ import { ProgressService } from './progress.service';
     TypeOrmModule.forFeature([
       Problem,
       Submission,
-      SheetProgress,
+      UserSheetProgress,
       ProblemMap,
     ]),
   ],

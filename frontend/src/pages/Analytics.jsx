@@ -1,14 +1,29 @@
+import React, { useState, useEffect } from 'react';
+import { getUserId, fetchUserAnalytics, fetchDetailedWeaknesses as fetchAnalyticsWeaknesses } from '../api/client';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from 'recharts';
 import Sidebar from '../components/Sidebar';
-import AnalyticsHeader from '../components/analytics/AnalyticsHeader';
-import StatsOverview from '../components/analytics/StatsOverview';
-import ProgressChart from '../components/analytics/ProgressChart';
-import TopicPerformanceChart from "../components/analytics/TopicPerformanceChart";
-import WeaknessAnalysis from '../components/analytics/WeaknessAnalysis';
-import TopicRadarChart from '../components/analytics/TopicRadarChart';
-import ActivityHeatmap from '../components/analytics/ActivityHeatmap';
-import InsightsPanel from '../components/analytics/InsightsPanel';
 
+const DIFFICULTY_COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6b7280'];
 
+function getWeaknessColor(rate) {
+  if (rate < 40) return 'bg-red-500';
+  if (rate < 70) return 'bg-yellow-500';
+  return 'bg-green-500';
+}
 export default function Analytics() {
   const [analytics, setAnalytics] = useState(null);
   const [weaknesses, setWeaknesses] = useState([]);
@@ -231,7 +246,7 @@ export default function Analytics() {
             </section>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <section className="rounded-xl border border-gray-800 bg-gray-900/20 p-6 h-105">
+              <section className="rounded-xl border border-gray-800 bg-gray-900/20 p-6 h-[400px]">
                 <h2 className="text-xl font-bold mb-4">Topic Stats</h2>
                 {chartTopicStats.length === 0 ? (
                   <p className="text-gray-400">No topic stats available.</p>
@@ -263,7 +278,7 @@ export default function Analytics() {
                 )}
               </section>
 
-              <section className="rounded-xl border border-gray-800 bg-gray-900/20 p-6 h-105">
+              <section className="rounded-xl border border-gray-800 bg-gray-900/20 p-6 h-[400px]">
                 <h2 className="text-xl font-bold mb-4">
                   Difficulty Distribution
                 </h2>
@@ -307,7 +322,7 @@ export default function Analytics() {
               </section>
             </div>
 
-            <section className="rounded-xl border border-gray-800 bg-gray-900/20 p-6 h-105">
+            <section className="rounded-xl border border-gray-800 bg-gray-900/20 p-6 h-[400px]">
               <h2 className="text-xl font-bold mb-4">
                 Progress Trend (Last 30 Days)
               </h2>

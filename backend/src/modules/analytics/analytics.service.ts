@@ -8,6 +8,8 @@ import {
 import { Submission } from '../submissions/entities/submission.entity';
 import { Problem } from '../problems/entities/problem.entity';
 import { Contest } from '../contests/entities/contest.entity';
+import { SheetProblem } from '../sheets/entities/sheet-problem.entity';
+import { UserSheetProgress } from '../sheets/entities/user-sheet-progress.entity';
 import { UnifiedSolveService } from '../unified/unified-solve.service';
 import { isAcceptedVerdict } from '../../common/utils/submission-problem.util';
 import { normalizeTag } from '../../common/utils/tag.util';
@@ -23,6 +25,12 @@ export class AnalyticsService {
 
     @InjectRepository(Contest)
     private contestRepository: Repository<Contest>,
+
+    @InjectRepository(SheetProblem)
+    private sheetProblemRepo: Repository<SheetProblem>,
+
+    @InjectRepository(UserSheetProgress)
+    private userSheetProgressRepo: Repository<UserSheetProgress>,
 
     private readonly unifiedSolveService: UnifiedSolveService,
   ) {}
@@ -99,79 +107,107 @@ export class AnalyticsService {
   async getDetailedWeaknesses(userId: number) {
     const [
       topicBreakdown,
-      contestWeaknesses,
+      submissions,
+      contests,
+      sheetProblems,
+      sheetProgress,
       solvedProblems,
-      allProblems,
     ] = await Promise.all([
       this.unifiedSolveService.getTopicBreakdown(userId),
-      this.unifiedSolveService.getContestWeaknesses(userId),
+      this.submissionsRepository.find({ where: { userId, platform: 'codeforces' } }),
+      this.contestRepository.find({ where: { userId } }),
+      this.sheetProblemRepo.find(),
+      this.userSheetProgressRepo.find({ where: { userId } }),
       this.unifiedSolveService.getUnifiedSolvedProblems(userId),
-      this.problemsRepository.find(),
     ]);
 
     const solvedKeys = new Set(
       solvedProblems.map((p) => `${p.platform}:${p.problemId}`),
     );
 
-    const contestFailureMap = new Map(
-      contestWeaknesses.map((entry) => [entry.topic, entry.failures]),
+    const contestIds = new Set(contests.map((c) => c.contestId));
+    const contestAttemptsMap = new Map<string, number>();
+    const contestFailuresMap = new Map<string, number>();
+
+    for (const submission of submissions) {
+      const contestMatch = submission.problemId.match(/^(\d+)-/);
+      if (!contestMatch) continue;
+      const contestId = Number(contestMatch[1]);
+      if (!contestIds.has(contestId)) continue;
+
+      const isSolved = isAcceptedVerdict(submission.verdict);
+
+      for (const tag of submission.tags ?? []) {
+        const topic = normalizeTag(tag);
+        if (!topic) continue;
+
+        contestAttemptsMap.set(topic, (contestAttemptsMap.get(topic) ?? 0) + 1);
+        if (!isSolved) {
+          contestFailuresMap.set(topic, (contestFailuresMap.get(topic) ?? 0) + 1);
+        }
+      }
+    }
+
+    const solvedProblemIds = new Set(
+      sheetProgress.filter((p) => p.isSolved).map((p) => p.sheetProblemId),
     );
+
+    const sheetTotalMap = new Map<string, number>();
+    const sheetUnsolvedMap = new Map<string, number>();
+
+    for (const problem of sheetProblems) {
+      const isSolved = solvedProblemIds.has(problem.id);
+      for (const tag of problem.tags ?? []) {
+        const topic = normalizeTag(tag);
+        if (!topic) continue;
+
+        sheetTotalMap.set(topic, (sheetTotalMap.get(topic) ?? 0) + 1);
+        if (!isSolved) {
+          sheetUnsolvedMap.set(topic, (sheetUnsolvedMap.get(topic) ?? 0) + 1);
+        }
+      }
+    }
 
     return topicBreakdown
       .map((topicStat) => {
-        const lowSuccessComponent =
-          (100 - topicStat.successRate) / 100;
-        const contestFailureComponent =
-          (contestFailureMap.get(topicStat.topic) ?? 0) / 10;
-        const avgDifficulty =
-          allProblems
-            .filter((problem) =>
-              (problem.tags ?? [])
-                .map(normalizeTag)
-                .includes(topicStat.topic),
-            )
-            .reduce((sum, problem) => sum + (problem.difficulty ?? 0), 0) /
-            Math.max(
-              allProblems.filter((problem) =>
-                (problem.tags ?? [])
-                  .map(normalizeTag)
-                  .includes(topicStat.topic),
-              ).length,
-              1,
-            );
+        const topic = topicStat.topic;
+        const successRate = topicStat.successRate;
 
-        const timeComponent = avgDifficulty / 3;
+        const contestAttempts = contestAttemptsMap.get(topic) ?? 0;
+        const contestFailures = contestFailuresMap.get(topic) ?? 0;
+        const contestFailureRate =
+          contestAttempts > 0 ? (contestFailures / contestAttempts) * 100 : 0;
+
+        const sheetTotal = sheetTotalMap.get(topic) ?? 0;
+        const sheetUnsolved = sheetUnsolvedMap.get(topic) ?? 0;
+        const sheetUnsolvedRate =
+          sheetTotal > 0 ? (sheetUnsolved / sheetTotal) * 100 : 0;
+
+        // weakness = (100-successRate)*0.5 + contestFailureRate*0.3 + sheetUnsolvedRate*0.2
         const weaknessScore =
           Math.round(
-            (lowSuccessComponent * 0.6 +
-              timeComponent * 0.2 +
-              Math.min(contestFailureComponent, 1) * 0.2) *
-              10000,
+            ((100 - successRate) * 0.5 +
+              contestFailureRate * 0.3 +
+              sheetUnsolvedRate * 0.2) *
+              100,
           ) / 100;
 
         const reasons: string[] = [];
-
-        if (topicStat.successRate < 50) {
-          reasons.push(`Low success rate (${topicStat.successRate}%)`);
+        if (successRate < 50) {
+          reasons.push(`Low success rate (${Math.round(successRate)}%)`);
+        }
+        if (contestFailures >= 2) {
+          reasons.push(`Failed in ${contestFailures} contest problems`);
+        }
+        if (sheetUnsolved > 0) {
+          reasons.push(`${sheetUnsolved} unsolved sheet problems`);
         }
 
-        if ((contestFailureMap.get(topicStat.topic) ?? 0) >= 2) {
-          reasons.push(
-            `Failed in ${contestFailureMap.get(topicStat.topic)} contests`,
-          );
-        }
-
-        if (avgDifficulty >= 2.5) {
-          reasons.push('High average difficulty');
-        }
-
-        const failedProblems = allProblems
+        const failedProblems = sheetProblems
           .filter((problem) => {
             const tags = (problem.tags ?? []).map(normalizeTag);
-            if (!tags.includes(topicStat.topic)) return false;
-            return !solvedKeys.has(
-              `${problem.platform}:${problem.problemId}`,
-            );
+            if (!tags.includes(topic)) return false;
+            return !solvedProblemIds.has(problem.id);
           })
           .slice(0, 5)
           .map((problem) => ({
@@ -179,18 +215,18 @@ export class AnalyticsService {
             title: problem.title,
             platform: problem.platform,
             difficulty: problem.difficulty,
-            url: problem.url,
+            url: problem.sourceUrl,
           }));
 
         const suggestedProblems = failedProblems.slice(0, 3);
 
         return {
-          topic: topicStat.topic,
+          topic,
           weaknessScore,
           reasons,
           failedProblems,
           suggestedProblems,
-          successRate: topicStat.successRate,
+          successRate,
           solved: topicStat.solved,
           attempted: topicStat.attempted,
         };

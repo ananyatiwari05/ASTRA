@@ -15,6 +15,7 @@ import { CodechefService } from '../codechef/codechef.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { RevisionService } from '../analytics/revision.service';
 import { ProgressService } from '../progress/progress.service';
+import { SheetsService } from '../sheets/sheets.service';
 import { Contest } from '../contests/entities/contest.entity';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class DashboardService {
     private analyticsService: AnalyticsService,
     private revisionService: RevisionService,
     private progressService: ProgressService,
+    private sheetsService: SheetsService,
     @InjectRepository(Contest)
     private contestRepo: Repository<Contest>,
   ) {}
@@ -170,6 +172,7 @@ export class DashboardService {
       weaknesses,
       revisionRecommendations,
       sheetProgress,
+      sheetProgressSummary,
     ] = await Promise.all([
       this.analyticsService.getUserWeaknesses(userId),
       this.revisionService.getRevisionRecommendations(
@@ -177,6 +180,7 @@ export class DashboardService {
         10,
       ),
       this.progressService.getSheetProgress(userId),
+      this.sheetsService.getUserProgressSummary(userId),
     ]);
 
     return {
@@ -195,6 +199,7 @@ export class DashboardService {
       revisionRecommendations,
       contestStats,
       sheetProgress,
+      sheetProgressSummary,
     };
   }
 }

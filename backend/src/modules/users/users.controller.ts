@@ -37,14 +37,12 @@ export class UsersController {
     @Param('id') id: string,
     @Body()
     body: {
-      a2zEmail?: string;
-      dailyEliminatorEmail?: string;
+      trackingPreference?: string;
     },
   ) {
     return this.usersService.updateSheetHandles(
       Number(id),
-      body.a2zEmail,
-      body.dailyEliminatorEmail,
+      body.trackingPreference,
     );
   }
 }

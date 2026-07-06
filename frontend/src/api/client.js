@@ -67,8 +67,9 @@ export async function fetchSheets() {
   return data;
 }
 
-export async function fetchSheetProblems(sheetName) {
-  const { data } = await api.get(`/sheets/${sheetName}/problems`);
+export async function fetchSheetProblems(sheetName, userId) {
+  const params = userId ? { userId } : {};
+  const { data } = await api.get(`/sheets/${sheetName}/problems`, { params });
   return data;
 }
 
@@ -151,6 +152,25 @@ export async function syncA2ZSheet(userId) {
 
 export async function syncTLESheet(userId) {
   const { data } = await api.post(`/sheets/sync/daily/${userId}`);
+  return data;
+}
+
+export async function syncTLE31Sheet(userId) {
+  const { data } = await api.post(`/sheets/sync/tle31/${userId}`);
+  return data;
+}
+
+export async function fetchUserSheetProgressSummary(userId) {
+  const { data } = await api.get(`/sheets/user/${userId}`);
+  return data;
+}
+
+export async function toggleManualCheck(userId, sheetProblemId, isSolved) {
+  const { data } = await api.post(`/sheets/manual-check`, {
+    userId,
+    sheetProblemId,
+    isSolved,
+  });
   return data;
 }
 

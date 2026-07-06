@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 
 import { Submission } from '../submissions/entities/submission.entity';
 import { Problem } from '../problems/entities/problem.entity';
+import { SheetProblem } from '../sheets/entities/sheet-problem.entity';
+import { UserSheetProgress } from '../sheets/entities/user-sheet-progress.entity';
 import { UnifiedSolveService } from '../unified/unified-solve.service';
 import { normalizeTag } from '../../common/utils/tag.util';
 
@@ -16,6 +18,12 @@ export class RevisionService {
     @InjectRepository(Problem)
     private problemsRepository: Repository<Problem>,
 
+    @InjectRepository(SheetProblem)
+    private sheetProblemRepo: Repository<SheetProblem>,
+
+    @InjectRepository(UserSheetProgress)
+    private userSheetProgressRepo: Repository<UserSheetProgress>,
+
     private readonly unifiedSolveService: UnifiedSolveService,
   ) {}
 
@@ -27,12 +35,6 @@ export class RevisionService {
         this.unifiedSolveService.getContestWeaknesses(userId),
       ]);
 
-    const weakTopicSet = new Set(
-      topicBreakdown
-        .filter((topic) => topic.successRate < 50)
-        .map((topic) => topic.topic),
-    );
-
     const contestFailureMap = new Map(
       contestWeaknesses.map((entry) => [entry.topic, entry.failures]),
     );
@@ -43,7 +45,8 @@ export class RevisionService {
       title: string;
       reason: string;
       topic: string;
-      priority: number;
+      priority: 'high' | 'medium' | 'low';
+      priorityScore: number;
       platform: string;
       url: string;
       difficulty: number;
@@ -58,37 +61,53 @@ export class RevisionService {
         : 999;
 
       const primaryTopic = normalizeTag(problem.tags?.[0] ?? 'general');
-      let reason = '';
-      let priority = 0;
-
-      if (daysSinceSolve >= 30) {
-        reason = `Not revised in ${daysSinceSolve} days`;
-        priority += daysSinceSolve;
-      }
-
-      if (weakTopicSet.has(primaryTopic)) {
-        reason = reason || `Weak in ${primaryTopic.replace(/_/g, ' ')}`;
-        priority += 100 - (topicBreakdown.find((t) => t.topic === primaryTopic)?.successRate ?? 0);
-      }
-
+      const topicStat = topicBreakdown.find((t) => t.topic === primaryTopic);
       const contestFailures = contestFailureMap.get(primaryTopic) ?? 0;
 
-      if (contestFailures >= 2) {
-        reason =
-          reason || `Failed in ${contestFailures} contests`;
-        priority += contestFailures * 25;
+      // 1. Old solved score
+      const oldSolvedScore = Math.min(daysSinceSolve * 1.5, 150);
+
+      // 2. Weak topic score
+      const successRate = topicStat ? topicStat.successRate : 100;
+      const weakTopicScore = (100 - successRate) * 1.5;
+
+      // 3. Contest failed topic score
+      const contestFailedScore = Math.min(contestFailures * 20, 100);
+
+      // 4. Hard problem score
+      let hardProblemScore = 0;
+      const diff = problem.difficulty ?? 0;
+      if (diff >= 3 || diff >= 1800) {
+        hardProblemScore = 50;
+      } else if (diff === 2 || diff >= 1400) {
+        hardProblemScore = 25;
       }
 
-      const topicStat = topicBreakdown.find(
-        (entry) => entry.topic === primaryTopic,
-      );
+      const priorityScore =
+        oldSolvedScore +
+        weakTopicScore +
+        contestFailedScore +
+        hardProblemScore;
 
-      if (topicStat && topicStat.successRate < 40) {
-        reason = reason || 'Low success rate';
-        priority += 50;
+      // Determine priority level
+      let priority: 'high' | 'medium' | 'low' = 'low';
+      if (priorityScore >= 120) {
+        priority = 'high';
+      } else if (priorityScore >= 60) {
+        priority = 'medium';
       }
 
-      if (!reason) continue;
+      // Determine main reason
+      let reason = 'Old solved problem';
+      if (successRate < 50) {
+        reason = `Weak in ${primaryTopic.replace(/_/g, ' ')}`;
+      } else if (contestFailures >= 2) {
+        reason = `Failed in ${contestFailures} contests on this topic`;
+      } else if (diff >= 3) {
+        reason = `Hard problem drill`;
+      } else if (daysSinceSolve >= 30) {
+        reason = `Not revised in ${daysSinceSolve} days`;
+      }
 
       queue.push({
         problemId: problem.problemId,
@@ -96,20 +115,17 @@ export class RevisionService {
         reason,
         topic: primaryTopic,
         priority,
+        priorityScore,
         platform: problem.platform,
         url: problem.url,
-        difficulty: problem.difficulty,
+        difficulty: diff,
         tags: problem.tags,
       });
     }
 
     return queue
-      .sort((a, b) => b.priority - a.priority)
-      .slice(0, limit)
-      .map(({ priority, ...rest }) => ({
-        ...rest,
-        priority,
-      }));
+      .sort((a, b) => b.priorityScore - a.priorityScore)
+      .slice(0, limit);
   }
 
   async getRevisionRecommendations(userId: number, limit = 10) {
@@ -127,19 +143,20 @@ export class RevisionService {
       reason: item.reason,
       topic: item.topic,
       priority: item.priority,
+      priorityScore: item.priorityScore,
       daysSinceLastAttempt: item.reason.includes('Not revised')
         ? Number(item.reason.match(/\d+/)?.[0] ?? 0)
         : 0,
-      priorityScore: item.priority,
     }));
   }
 
   async getWeakTopicsForRevision(userId: number) {
-    const [topicBreakdown, solvedProblems, allProblems] =
+    const [topicBreakdown, solvedProblems, allProblems, sheetProblems] =
       await Promise.all([
         this.unifiedSolveService.getTopicBreakdown(userId),
         this.unifiedSolveService.getUnifiedSolvedProblems(userId),
         this.problemsRepository.find(),
+        this.sheetProblemRepo.find(),
       ]);
 
     const solvedKeys = new Set(
@@ -151,7 +168,7 @@ export class RevisionService {
       successRate: number;
       weaknessPercentage: number;
       problems: {
-        id: number;
+        id: number | string;
         problemId: string;
         title: string;
         difficulty: number;
@@ -164,31 +181,78 @@ export class RevisionService {
     for (const topicStat of topicBreakdown) {
       if (topicStat.successRate >= 50) continue;
 
-      const unsolved = allProblems
-        .filter((problem) => {
-          const tags = (problem.tags ?? []).map(normalizeTag);
+      // Find unsolved problems from both general problems and sheet problems
+      const unsolvedProblemsList: {
+        id: number | string;
+        problemId: string;
+        title: string;
+        difficulty: number;
+        platform: string;
+        url: string;
+        tags: string[];
+      }[] = [];
+
+      // Check sheet problems first
+      const unsolvedSheetProblems = sheetProblems.filter((p) => {
+        const tags = (p.tags ?? []).map(normalizeTag);
+        if (!tags.includes(topicStat.topic)) return false;
+        return !solvedKeys.has(`${p.platform}:${p.problemId}`);
+      });
+
+      for (const p of unsolvedSheetProblems) {
+        let diffNum = 2;
+        if (p.difficulty === 'Easy') diffNum = 1;
+        else if (p.difficulty === 'Hard') diffNum = 3;
+
+        unsolvedProblemsList.push({
+          id: `sheet-${p.id}`,
+          problemId: p.problemId,
+          title: p.title,
+          difficulty: diffNum,
+          platform: p.platform,
+          url: p.sourceUrl || '',
+          tags: p.tags ?? [],
+        });
+      }
+
+      // If we need more, grab from general catalog problems
+      if (unsolvedProblemsList.length < 5) {
+        const unsolvedGeneralProblems = allProblems.filter((p) => {
+          const tags = (p.tags ?? []).map(normalizeTag);
           if (!tags.includes(topicStat.topic)) return false;
-          return !solvedKeys.has(
-            `${problem.platform}:${problem.problemId}`,
-          );
-        })
-        .slice(0, 5)
-        .map((problem) => ({
-          id: problem.id,
-          problemId: problem.problemId,
-          title: problem.title,
-          difficulty: problem.difficulty,
-          platform: problem.platform,
-          url: problem.url,
-          tags: problem.tags ?? [],
-        }));
+          return !solvedKeys.has(`${p.platform}:${p.problemId}`);
+        });
+
+        for (const p of unsolvedGeneralProblems) {
+          if (unsolvedProblemsList.length >= 5) break;
+          // check if already added
+          if (
+            unsolvedProblemsList.some(
+              (up) =>
+                up.problemId === p.problemId && up.platform === p.platform,
+            )
+          ) {
+            continue;
+          }
+
+          unsolvedProblemsList.push({
+            id: p.id,
+            problemId: p.problemId,
+            title: p.title,
+            difficulty: p.difficulty ?? 2,
+            platform: p.platform,
+            url: p.url,
+            tags: p.tags ?? [],
+          });
+        }
+      }
 
       weakTopics.push({
         topic: topicStat.topic,
         successRate: topicStat.successRate,
         weaknessPercentage:
           Math.round((100 - topicStat.successRate) * 100) / 100,
-        problems: unsolved,
+        problems: unsolvedProblemsList.slice(0, 5),
       });
     }
 

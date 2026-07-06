@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Submission } from '../submissions/entities/submission.entity';
 import { Problem } from '../problems/entities/problem.entity';
 import { Contest } from '../contests/entities/contest.entity';
-import { SheetProgress } from '../sheets/entities/sheet-progress.entity';
-import { ProblemMap } from '../sheets/entities/problem-map.entity';
+import { SheetProblem } from '../sheets/entities/sheet-problem.entity';
+import { UserSheetProgress } from '../sheets/entities/user-sheet-progress.entity';
 import { UnifiedSolveService } from './unified-solve.service';
+import { ProblemMap } from '../sheets/entities/problem-map.entity';
 
 @Module({
   imports: [
@@ -14,11 +15,12 @@ import { UnifiedSolveService } from './unified-solve.service';
       Submission,
       Problem,
       Contest,
-      SheetProgress,
       ProblemMap,
+      SheetProblem,
+      UserSheetProgress,
     ]),
   ],
   providers: [UnifiedSolveService],
   exports: [UnifiedSolveService],
 })
-export class UnifiedModule {}
+export class UnifiedModule { }

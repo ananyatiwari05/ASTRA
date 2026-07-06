@@ -6,272 +6,253 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import axios from 'axios';
+import { google } from 'googleapis';
 
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
-import {
-  SheetProgress,
-  SheetProgressSource,
-} from './entities/sheet-progress.entity';
-import { ProblemMap } from './entities/problem-map.entity';
-
-type SheetSyncConfig = {
-  sheetId: string;
-  range: string;
-  sheetName: string;
-  source: SheetProgressSource;
-};
+import { SheetProblem } from './entities/sheet-problem.entity';
+import { UserSheetProgress } from './entities/user-sheet-progress.entity';
 
 @Injectable()
-export class SheetSyncService {
+export class SheetsSyncService {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
 
-    @InjectRepository(SheetProgress)
-    private readonly sheetProgressRepo: Repository<SheetProgress>,
+    @InjectRepository(SheetProblem)
+    private readonly sheetProblemRepo: Repository<SheetProblem>,
 
-    @InjectRepository(ProblemMap)
-    private readonly problemMapRepo: Repository<ProblemMap>,
-  ) {}
+    @InjectRepository(UserSheetProgress)
+    private readonly userSheetProgressRepo: Repository<UserSheetProgress>,
+  ) { }
+
+  private getSheetsClient() {
+    const clientEmail =
+      this.configService.get<string>('GOOGLE_CLIENT_EMAIL') ||
+      process.env.GOOGLE_CLIENT_EMAIL;
+    let privateKey =
+      this.configService.get<string>('GOOGLE_PRIVATE_KEY') ||
+      process.env.GOOGLE_PRIVATE_KEY;
+
+    if (!clientEmail || !privateKey) {
+      throw new BadRequestException(
+        'Google Sheets service account email (GOOGLE_CLIENT_EMAIL) or private key (GOOGLE_PRIVATE_KEY) is not configured in .env',
+      );
+    }
+
+    // Replace literal newlines if they are escaped as string
+    privateKey = privateKey.replace(/\\n/g, '\n');
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: clientEmail,
+        private_key: privateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+
+    return google.sheets({ version: 'v4', auth });
+  }
+
+  private extractSheetId(url: string): string {
+    if (!url) {
+      throw new BadRequestException('Google Sheet URL is empty');
+    }
+    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (!match) {
+      throw new BadRequestException(
+        'Invalid Google Sheet URL. Could not extract spreadsheet ID.',
+      );
+    }
+    return match[1];
+  }
 
   async syncA2Z(userId: number) {
-    const user = await this.usersService.findById(userId);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.a2zEmail) {
-      throw new BadRequestException(
-        'A2Z email not configured. Add it in profile settings.',
-      );
-    }
-
-    const result = await this.syncSheet(user, {
-      sheetId: this.configService.get<string>('A2Z_SHEET_ID') ?? '',
-      range:
-        this.configService.get<string>('A2Z_SHEET_RANGE') ??
-        'Sheet1!A:ZZ',
-      sheetName: 'A2Z',
-      source: SheetProgressSource.A2Z,
-    });
-
-    await this.usersService.updateA2zLastSynced(userId);
-
-    return result;
+    throw new BadRequestException('Google Sheets integration is no longer supported. Please use manual tracking.');
   }
 
-  async syncTLEliminator(userId: number) {
-    const user = await this.usersService.findById(userId);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.TLEliminatorEmail) {
-      throw new BadRequestException(
-        'TLE Eliminator email not configured. Add it in profile settings.',
-      );
-    }
-
-    const result = await this.syncSheet(user, {
-      sheetId: this.configService.get<string>('TLE_SHEET_ID') ?? '',
-      range:
-        this.configService.get<string>('TLE_SHEET_RANGE') ??
-        'Sheet1!A:ZZ',
-      sheetName: 'TLE',
-      source: SheetProgressSource.TLE_ELIMINATOR,
-    });
-
-    await this.usersService.updateTleLastSynced(userId);
-
-    return result;
+  async syncTLE31(userId: number) {
+    throw new BadRequestException('Google Sheets integration is no longer supported. Please use manual tracking.');
   }
 
-  private async syncSheet(
-    user: User,
-    config: SheetSyncConfig,
-  ) {
-    if (!config.sheetId) {
-      throw new BadRequestException(
-        `${config.sheetName} Google Sheet ID is not configured on the server.`,
-      );
-    }
-
-    const email =
-      config.source === SheetProgressSource.A2Z
-        ? user.a2zEmail
-        : user.TLEliminatorEmail;
-
-    const rows = await this.fetchSheetValues(
-      config.sheetId,
-      config.range,
-    );
-
-    const solvedIds = this.extractSolvedProblemIds(rows, email!);
-    const problemMaps = await this.problemMapRepo.find({
-      where: { sheetName: config.sheetName },
-    });
-
-    const mapBySheetId = new Map(
-      problemMaps.map((entry) => [entry.sheetProblemId, entry]),
-    );
-
-    const now = new Date();
-    let synced = 0;
-    let unmarked = 0;
-
-    for (const mapEntry of problemMaps) {
-      const isSolved = solvedIds.has(mapEntry.sheetProblemId);
-
-      await this.sheetProgressRepo.upsert(
-        {
-          userId: user.id,
-          sheetName: config.sheetName,
-          problemId: mapEntry.sheetProblemId,
-          isSolved,
-          solvedAt: isSolved ? now : null,
-          source: config.source,
-          syncedAt: now,
-        },
-        ['userId', 'sheetName', 'problemId'],
-      );
-
-      if (isSolved) {
-        synced++;
-      } else {
-        unmarked++;
-      }
-    }
-
-    const unmappedSolved = [...solvedIds].filter(
-      (id) => !mapBySheetId.has(id),
-    );
-
-    return {
-      message: `${config.sheetName} sheet synced successfully`,
-      sheetName: config.sheetName,
-      source: config.source,
-      email,
-      solvedCount: synced,
-      totalMapped: problemMaps.length,
-      unmappedSolvedIds: unmappedSolved,
-      remaining: unmarked,
-      syncedAt: now,
-    };
-  }
-
-  private async fetchSheetValues(
+  private async fetchSolvedFromGoogleSheet(
     spreadsheetId: string,
-    range: string,
-  ): Promise<string[][]> {
-    const apiKey = this.configService.get<string>(
-      'GOOGLE_SHEETS_API_KEY',
-    );
+    email: string,
+    sheetNameType: 'A2Z' | 'TLE31',
+  ): Promise<Set<number>> {
+    const sheetsClient = this.getSheetsClient();
 
-    if (!apiKey) {
-      throw new BadRequestException(
-        'GOOGLE_SHEETS_API_KEY is not configured on the server.',
-      );
-    }
-
+    let spreadsheet;
     try {
-      const { data } = await axios.get(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
-        { params: { key: apiKey } },
+      spreadsheet = await sheetsClient.spreadsheets.get({ spreadsheetId });
+    } catch (error: any) {
+      throw new BadRequestException(
+        `Failed to access Google Sheet: ${error.message || 'Is it shared with the service account?'}. Please ensure the sheet is shared with viewer access to your service account email.`,
       );
-
-      return (data.values ?? []) as string[][];
-    } catch (error) {
-      const message =
-        axios.isAxiosError(error) && error.response?.data?.error?.message
-          ? error.response.data.error.message
-          : 'Failed to fetch Google Sheet data';
-
-      throw new BadRequestException(message);
     }
+
+    const firstSheetName =
+      spreadsheet.data.sheets?.[0]?.properties?.title || 'Sheet1';
+
+    let response;
+    try {
+      response = await sheetsClient.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${firstSheetName}!A:ZZ`,
+      });
+    } catch (error: any) {
+      throw new BadRequestException(
+        `Failed to read sheet data: ${error.message}`,
+      );
+    }
+
+    const rows = response.data.values as string[][] | undefined;
+    if (!rows || rows.length === 0) {
+      throw new BadRequestException('The sheet contains no data.');
+    }
+
+    return this.parseSheetRows(rows, email, sheetNameType);
   }
 
-  private extractSolvedProblemIds(
+  private parseSheetRows(
     rows: string[][],
-    email: string,
-  ): Set<string> {
-    if (!rows.length) {
-      return new Set();
+    userEmail: string,
+    sheetNameType: 'A2Z' | 'TLE31',
+  ): Set<number> {
+    const solvedIndices = new Set<number>();
+    const normalizedEmail = userEmail.trim().toLowerCase();
+
+    // 1. Detect Layout Mode
+    // Layout A: Grid style. Rows = users (with email), Columns = problem columns.
+    // Layout B: Row-per-problem style. Rows = problems. Solved column containing checkboxes.
+    let emailColIndex = -1;
+    let headerRowIndex = 0;
+
+    // Scan first 10 rows for "email" column
+    for (let r = 0; r < Math.min(rows.length, 10); r++) {
+      const row = rows[r] || [];
+      for (let c = 0; c < row.length; c++) {
+        const val = String(row[c] || '').trim().toLowerCase();
+        if (
+          val === 'email' ||
+          val.includes('email address') ||
+          val === 'emails'
+        ) {
+          emailColIndex = c;
+          headerRowIndex = r;
+          break;
+        }
+      }
+      if (emailColIndex >= 0) break;
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    let headerRowIndex = 0;
-    let emailColIndex = -1;
+    if (emailColIndex >= 0) {
+      // Grid style layout: rows are users, columns are problems
+      const headerRow = rows[headerRowIndex] || [];
+      let userRowIndex = -1;
 
-    for (let rowIndex = 0; rowIndex < Math.min(rows.length, 20); rowIndex++) {
-      const row = rows[rowIndex] ?? [];
-
-      for (let colIndex = 0; colIndex < row.length; colIndex++) {
-        const cell = String(row[colIndex] ?? '').trim().toLowerCase();
-
-        if (cell === 'email' || cell.includes('email address')) {
-          headerRowIndex = rowIndex;
-          emailColIndex = colIndex;
+      for (let r = headerRowIndex + 1; r < rows.length; r++) {
+        const row = rows[r] || [];
+        const cellEmail = String(row[emailColIndex] || '')
+          .trim()
+          .toLowerCase();
+        if (cellEmail === normalizedEmail) {
+          userRowIndex = r;
           break;
         }
       }
 
-      if (emailColIndex >= 0) break;
-    }
+      if (userRowIndex < 0) {
+        throw new BadRequestException(
+          `No row matching email "${userEmail}" was found in the sheet.`,
+        );
+      }
 
-    const headerRow = rows[headerRowIndex] ?? [];
+      const userRow = rows[userRowIndex] || [];
+      for (let c = 0; c < headerRow.length; c++) {
+        if (c === emailColIndex) continue;
+        const header = String(headerRow[c] || '').trim();
+        const value = String(userRow[c] || '').trim();
 
-    if (emailColIndex < 0) {
-      emailColIndex = 0;
-    }
+        if (this.isCheckedValue(value)) {
+          const probNum = this.extractProblemNumber(header, c);
+          if (probNum !== null) {
+            solvedIndices.add(probNum);
+          }
+        }
+      }
+    } else {
+      // Row-per-problem style layout: each row represents a problem, with columns for "solved", "title", etc.
+      let solvedColIndex = -1;
+      let probNumColIndex = -1;
+      let titleColIndex = -1;
 
-    let userRowIndex = -1;
+      // Find the header row by looking for "status", "solved", "title", etc.
+      let layoutHeaderRowIndex = 0;
+      for (let r = 0; r < Math.min(rows.length, 10); r++) {
+        const row = rows[r] || [];
+        for (let c = 0; c < row.length; c++) {
+          const val = String(row[c] || '').trim().toLowerCase();
+          if (
+            val === 'solved' ||
+            val === 'status' ||
+            val === 'done' ||
+            val === 'check' ||
+            val === 'completed' ||
+            val === 'is solved' ||
+            val === 'verdict'
+          ) {
+            solvedColIndex = c;
+            layoutHeaderRowIndex = r;
+          }
+          if (
+            val === 'number' ||
+            val === '#' ||
+            val === 'id' ||
+            val === 'no' ||
+            val === 'problem number'
+          ) {
+            probNumColIndex = c;
+          }
+          if (
+            val === 'title' ||
+            val === 'problem' ||
+            val === 'problem name'
+          ) {
+            titleColIndex = c;
+          }
+        }
+        if (solvedColIndex >= 0) break;
+      }
 
-    for (let rowIndex = headerRowIndex + 1; rowIndex < rows.length; rowIndex++) {
-      const row = rows[rowIndex] ?? [];
-      const cellEmail = String(row[emailColIndex] ?? '')
-        .trim()
-        .toLowerCase();
+      // Fallback indices if not explicitly named
+      if (solvedColIndex < 0) solvedColIndex = 0; // Default first col
+      if (probNumColIndex < 0) probNumColIndex = 1;
+      if (titleColIndex < 0) titleColIndex = 2;
 
-      if (cellEmail === normalizedEmail) {
-        userRowIndex = rowIndex;
-        break;
+      for (let r = layoutHeaderRowIndex + 1; r < rows.length; r++) {
+        const row = rows[r] || [];
+        if (row.length === 0) continue;
+        const statusVal = String(row[solvedColIndex] || '').trim();
+        const probNumVal = String(row[probNumColIndex] || '').trim();
+
+        if (this.isCheckedValue(statusVal)) {
+          // Parse problem number from the sheet row (e.g. "1", "Q1", or row index)
+          let probNum = parseInt(probNumVal, 10);
+          if (isNaN(probNum)) {
+            // fallback to using row number (1-based from start of problems)
+            probNum = r - layoutHeaderRowIndex;
+          }
+          solvedIndices.add(probNum);
+        }
       }
     }
 
-    if (userRowIndex < 0) {
-      throw new BadRequestException(
-        `No row found for email "${email}" in the sheet.`,
-      );
-    }
-
-    const userRow = rows[userRowIndex] ?? [];
-    const solved = new Set<string>();
-
-    for (let colIndex = 0; colIndex < headerRow.length; colIndex++) {
-      if (colIndex === emailColIndex) continue;
-
-      const header = String(headerRow[colIndex] ?? '').trim();
-      const value = String(userRow[colIndex] ?? '').trim();
-
-      if (!this.isCheckedValue(value)) continue;
-
-      const problemId = this.extractProblemIdFromHeader(header, colIndex);
-
-      if (problemId) {
-        solved.add(problemId);
-      }
-    }
-
-    return solved;
+    return solvedIndices;
   }
 
   private isCheckedValue(value: string): boolean {
     const normalized = value.trim().toUpperCase();
-
     return (
       normalized === 'TRUE' ||
       normalized === 'YES' ||
@@ -284,32 +265,71 @@ export class SheetSyncService {
     );
   }
 
-  private extractProblemIdFromHeader(
+  private extractProblemNumber(
     header: string,
-    columnIndex: number,
-  ): string | null {
-    if (!header) {
-      return String(columnIndex);
+    colIndex: number,
+  ): number | null {
+    if (!header) return colIndex;
+    const match = header.match(/#?\s*(\d+)/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    const num = parseInt(header, 10);
+    if (!isNaN(num)) return num;
+    return colIndex;
+  }
+
+  private async saveProgress(
+    user: User,
+    sheetName: string,
+    solvedProblemNumbers: Set<number>,
+  ) {
+    const problems = await this.sheetProblemRepo.find({
+      where: { sheetName },
+    });
+
+    const now = new Date();
+    let syncedSolved = 0;
+
+    for (const problem of problems) {
+      const isSolved = solvedProblemNumbers.has(problem.problemNumber);
+
+      // Fetch existing progress
+      let progress = await this.userSheetProgressRepo.findOne({
+        where: { userId: user.id, sheetProblemId: problem.id },
+      });
+
+      if (!progress) {
+        progress = this.userSheetProgressRepo.create({
+          userId: user.id,
+          sheetProblemId: problem.id,
+          sheetName: problem.sheetName,
+          isSolved,
+          solvedAt: isSolved ? now : null,
+          syncSource: 'api',
+        });
+      } else {
+        progress.isSolved = isSolved;
+        if (isSolved && !progress.solvedAt) {
+          progress.solvedAt = now;
+        } else if (!isSolved) {
+          progress.solvedAt = null;
+        }
+        progress.syncSource = 'api';
+      }
+
+      await this.userSheetProgressRepo.save(progress);
+      if (isSolved) {
+        syncedSolved++;
+      }
     }
 
-    const numberMatch = header.match(/#?\s*(\d+)/);
-
-    if (numberMatch) {
-      return numberMatch[1];
-    }
-
-    const qMatch = header.match(/Q\s*(\d+)/i);
-
-    if (qMatch) {
-      return qMatch[1];
-    }
-
-    const normalized = header.trim();
-
-    if (/^\d+$/.test(normalized)) {
-      return normalized;
-    }
-
-    return normalized || String(columnIndex);
+    return {
+      message: `${sheetName} sheet synced successfully via API.`,
+      sheetName,
+      solvedCount: syncedSolved,
+      totalCount: problems.length,
+      syncedAt: now,
+    };
   }
 }

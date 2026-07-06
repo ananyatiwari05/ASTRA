@@ -45,14 +45,11 @@ export class User {
   @Column({ nullable: true })
   TLEliminatorEmail!: string;
 
+  @Column({ default: 'manual' })
+  trackingPreference!: string;
+
   @Column({ type: 'timestamp', nullable: true })
   cfLastSyncedAt!: Date | null;
-
-  @Column({ type: 'timestamp', nullable: true })
-  a2zLastSyncedAt!: Date | null;
-
-  @Column({ type: 'timestamp', nullable: true })
-  tleLastSyncedAt!: Date | null;
 
   @OneToOne(
     () => CompetitiveProfile,

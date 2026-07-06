@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Problem } from '../problems/entities/problem.entity';
 import { Submission } from '../submissions/entities/submission.entity';
-import { SheetProgress } from '../sheets/entities/sheet-progress.entity';
+import { UserSheetProgress } from '../sheets/entities/user-sheet-progress.entity';
 import { ProblemMap } from '../sheets/entities/problem-map.entity';
 import { isAcceptedVerdict } from '../../common/utils/submission-problem.util';
 
@@ -22,8 +22,8 @@ export class ProgressService {
     @InjectRepository(Submission)
     private submissionRepo: Repository<Submission>,
 
-    @InjectRepository(SheetProgress)
-    private sheetProgressRepo: Repository<SheetProgress>,
+    @InjectRepository(UserSheetProgress)
+    private userSheetProgressRepo: Repository<UserSheetProgress>,
 
     @InjectRepository(ProblemMap)
     private problemMapRepo: Repository<ProblemMap>,
@@ -61,8 +61,11 @@ export class ProgressService {
   }
 
   private async buildSheetProgressLookup(userId: number) {
-    const [progress, maps] = await Promise.all([
-      this.sheetProgressRepo.find({ where: { userId, isSolved: true } }),
+    const [userProgress, maps] = await Promise.all([
+      this.userSheetProgressRepo.find({
+        where: { userId, isSolved: true },
+        relations: { sheetProblem: true },
+      }),
       this.problemMapRepo.find(),
     ]);
 
@@ -78,17 +81,11 @@ export class ProgressService {
       { source: string; lastSolvedAt: Date | null }
     >();
 
-    for (const entry of progress) {
-      const mapEntry = mapLookup.get(
-        `${entry.sheetName}:${entry.problemId}`,
-      );
-
-      if (!mapEntry) continue;
-
-      const key = `${mapEntry.platform}:${mapEntry.platformProblemId}`;
-
+    for (const entry of userProgress) {
+      if (!entry.sheetProblem) continue;
+      const key = `${entry.sheetProblem.platform}:${entry.sheetProblem.problemId}`;
       lookup.set(key, {
-        source: entry.source,
+        source: entry.sheetName,
         lastSolvedAt: entry.solvedAt,
       });
     }

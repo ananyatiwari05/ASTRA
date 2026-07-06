@@ -3,7 +3,7 @@ import Sidebar from '../components/Sidebar';
 import SheetCard from '../components/sheets/SheetCard';
 import { motion } from 'framer-motion';
 import {
-  fetchSheetProgress,
+  fetchUserSheetProgressSummary,
   fetchSheets,
   getUserId,
 } from '../api/client';
@@ -14,6 +14,7 @@ const SHEET_PATHS = {
   TLE: '/sheets/TLE',
   CP: '/sheets/CP',
   '31': '/sheets/31',
+  TLE31: '/sheets/tle31',
 };
 
 const SHEET_TITLES = {
@@ -22,6 +23,7 @@ const SHEET_TITLES = {
   TLE: 'TLE Eliminator Sheet',
   CP: 'Striver CP Sheet',
   '31': 'Striver 31 Sheet',
+  TLE31: 'TLE Eliminators 31 Sheet',
 };
 
 export default function Sheets() {
@@ -45,17 +47,8 @@ export default function Sheets() {
       const userId = getUserId();
 
       if (userId) {
-        const progressData = await fetchSheetProgress(userId);
-        const progressMap = {};
-
-        for (const sheet of progressData) {
-          progressMap[sheet.sheetName] = {
-            total: sheet.totalProblems,
-            solved: sheet.solvedProblems,
-          };
-        }
-
-        setSheetProgress(progressMap);
+        const progressData = await fetchUserSheetProgressSummary(userId);
+        setSheetProgress(progressData);
       }
     } catch (err) {
       console.error(err);

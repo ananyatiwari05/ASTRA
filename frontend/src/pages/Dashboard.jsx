@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [weaknesses, setWeaknesses] = useState([]);
   const [revisionRecommendations, setRevisionRecommendations] =
     useState([]);
+  const [sheetProgressSummary, setSheetProgressSummary] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -67,6 +68,7 @@ export default function Dashboard() {
       setRevisionRecommendations(
         data.revisionRecommendations || [],
       );
+      setSheetProgressSummary(data.sheetProgressSummary || null);
     } catch (err) {
       console.error(err);
       setError('Failed to load dashboard');
@@ -240,6 +242,32 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {sheetProgressSummary && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="border border-gray-700 rounded bg-gray-900 p-5">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-bold">A2Z Sheet</h3>
+                <span className="text-cyan-400 font-semibold">{sheetProgressSummary.a2z.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-800 rounded-full h-2.5 mb-3">
+                <div className="bg-cyan-600 h-2.5 rounded-full" style={{ width: `${sheetProgressSummary.a2z.progress}%` }}></div>
+              </div>
+              <p className="text-gray-400 text-sm">{sheetProgressSummary.a2z.solved} / {sheetProgressSummary.a2z.total} Solved</p>
+            </div>
+
+            <div className="border border-gray-700 rounded bg-gray-900 p-5">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-bold">TLE31 Sheet</h3>
+                <span className="text-cyan-400 font-semibold">{sheetProgressSummary.tle31.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-800 rounded-full h-2.5 mb-3">
+                <div className="bg-cyan-600 h-2.5 rounded-full" style={{ width: `${sheetProgressSummary.tle31.progress}%` }}></div>
+              </div>
+              <p className="text-gray-400 text-sm">{sheetProgressSummary.tle31.solved} / {sheetProgressSummary.tle31.total} Solved</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ function mapProblem(problem, solvedKeys) {
     id: problem.id,
     title: problem.title,
     topic: problem.topic || problem.tags?.[0] || 'General',
+    ratingBucket: problem.ratingBucket || problem.topic || 'Unrated',
     difficulty:
       DIFFICULTY_LABELS[problem.difficulty] ||
       String(problem.difficulty || 'Medium'),
@@ -41,7 +42,7 @@ function mapProblem(problem, solvedKeys) {
   };
 }
 
-export default function A2ZSheet() {
+export default function TLE31Sheet() {
   const [problems, setProblems] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -63,7 +64,7 @@ export default function A2ZSheet() {
       setError('');
 
       const userId = getUserId();
-      const sheetProblems = await fetchSheetProblems('A2Z', userId);
+      const sheetProblems = await fetchSheetProblems('TLE31', userId);
 
       let solvedKeys = new Set();
 
@@ -119,7 +120,7 @@ export default function A2ZSheet() {
       );
     } catch (err) {
       console.error(err);
-      setError('Failed to load A2Z sheet');
+      setError('Failed to load TLE31 sheet');
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +129,12 @@ export default function A2ZSheet() {
   const uniqueTopics = useMemo(
     () =>
       Array.from(new Set(problems.map((p) => p.topic))).sort(),
+    [problems],
+  );
+
+  const uniqueRatingBuckets = useMemo(
+    () =>
+      Array.from(new Set(problems.map((p) => p.ratingBucket || p.topic))).sort((a, b) => Number(a) - Number(b)),
     [problems],
   );
 
@@ -212,10 +219,10 @@ export default function A2ZSheet() {
                   <FiArrowLeft /> SHEETS
                 </Link>
                 <span className="text-gray-500">/</span>
-                <span className="text-gray-500">A2Z</span>
+                <span className="text-gray-500">TLE31</span>
               </div>
               <h1 className="text-3xl font-black tracking-tight text-white uppercase">
-                A2Z DSA Sheet
+                TLE Eliminators Sheet
               </h1>
               <p className="text-sm text-gray-400 mt-1">
                 Master DSA from Basics to Advanced structures step by step.
@@ -246,62 +253,58 @@ export default function A2ZSheet() {
           <SheetFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
-            selectedTopic={selectedTopic}
-            setSelectedTopic={setSelectedTopic}
             selectedDifficulty={selectedDifficulty}
             setSelectedDifficulty={setSelectedDifficulty}
             selectedStatus={selectedStatus}
             setSelectedStatus={setSelectedStatus}
-            topics={uniqueTopics}
+            topics={[]}
           />
 
           <div className="space-y-4">
-            {uniqueTopics
-              .filter((topic) => selectedTopic === 'All' || topic === selectedTopic)
-              .map((topic) => {
-                const topicProblems = filteredProblems.filter(
-                  (p) => p.topic === topic
-                );
-                
-                if (topicProblems.length === 0) return null;
+            {uniqueRatingBuckets.map((bucket) => {
+              const bucketProblems = filteredProblems.filter(
+                (p) => p.ratingBucket === bucket
+              );
+              
+              if (bucketProblems.length === 0) return null;
 
-                const topicSolved = topicProblems.filter(p => p.solved).length;
-                const topicTotal = topicProblems.length;
+              const bucketSolved = bucketProblems.filter(p => p.solved).length;
+              const bucketTotal = bucketProblems.length;
 
-                return (
-                  <details
-                    key={topic}
-                    open
-                    className="group border border-gray-800 bg-gray-900/50 rounded-xl overflow-hidden"
-                  >
-                    <summary className="flex items-center justify-between p-4 bg-gray-950/80 cursor-pointer select-none">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-semibold text-white">{topic}</h2>
-                        <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded-md font-mono">
-                          {topicSolved} / {topicTotal}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden hidden sm:block">
-                          <div
-                            className="h-full bg-cyan-500 transition-all duration-500"
-                            style={{ width: `${(topicSolved / topicTotal) * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-gray-500 group-open:rotate-180 transition-transform duration-200">
-                          ▼
-                        </span>
-                      </div>
-                    </summary>
-                    <div className="p-1 border-t border-gray-800/50">
-                      <ProblemTable
-                        problems={topicProblems}
-                        onToggleSolved={toggleSolved}
-                      />
+              return (
+                <details
+                  key={bucket}
+                  open
+                  className="group border border-gray-800 bg-gray-900/50 rounded-xl overflow-hidden"
+                >
+                  <summary className="flex items-center justify-between p-4 bg-gray-950/80 cursor-pointer select-none">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-semibold text-white">{bucket} Rating</h2>
+                      <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded-md font-mono">
+                        {bucketSolved} / {bucketTotal}
+                      </span>
                     </div>
-                  </details>
-                );
-              })}
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden hidden sm:block">
+                        <div
+                          className="h-full bg-blue-500 transition-all duration-500"
+                          style={{ width: `${(bucketSolved / bucketTotal) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-gray-500 group-open:rotate-180 transition-transform duration-200">
+                        ▼
+                      </span>
+                    </div>
+                  </summary>
+                  <div className="p-1 border-t border-gray-800/50">
+                    <ProblemTable
+                      problems={bucketProblems}
+                      onToggleSolved={toggleSolved}
+                    />
+                  </div>
+                </details>
+              );
+            })}
             {filteredProblems.length === 0 && (
               <div className="text-center py-10 text-gray-500 border border-gray-800 rounded-xl bg-gray-900/20">
                 No problems match your filters.

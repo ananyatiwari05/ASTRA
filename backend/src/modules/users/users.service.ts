@@ -50,17 +50,12 @@ export class UsersService {
 
   async updateSheetHandles(
     id: number,
-    a2zEmail?: string,
-    dailyEliminatorEmail?: string,
+    trackingPreference?: string,
   ) {
     const update: Partial<User> = {};
 
-    if (a2zEmail !== undefined) {
-      update.a2zEmail = a2zEmail || undefined;
-    }
-
-    if (dailyEliminatorEmail !== undefined) {
-      update.TLEliminatorEmail = dailyEliminatorEmail || undefined;
+    if (trackingPreference !== undefined) {
+      update.trackingPreference = trackingPreference;
     }
 
     await this.userRepo.update(id, update);
@@ -74,15 +69,12 @@ export class UsersService {
     });
   }
 
-  async updateA2zLastSynced(id: number) {
-    await this.userRepo.update(id, {
-      a2zLastSyncedAt: new Date(),
-    });
-  }
-
-  async updateTleLastSynced(id: number) {
-    await this.userRepo.update(id, {
-      tleLastSyncedAt: new Date(),
+  async findByCodeforcesHandle(handle: string) {
+    return this.userRepo.findOne({
+      where: { cfHandle: handle },
+      relations: {
+        profile: true,
+      },
     });
   }
 }

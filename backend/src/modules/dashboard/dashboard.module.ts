@@ -13,6 +13,7 @@ import { SubmissionsModule } from '../submissions/submissions.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
 import { RevisionModule } from '../analytics/revision.module';
 import { ProgressModule } from '../progress/progress.module';
+import { SheetsModule } from '../sheets/sheets.module';
 import { Contest } from '../contests/entities/contest.entity';
 
 @Module({
@@ -27,6 +28,7 @@ import { Contest } from '../contests/entities/contest.entity';
     AnalyticsModule,
     RevisionModule,
     ProgressModule,
+    SheetsModule,
     TypeOrmModule.forFeature([Contest]),
   ],
   controllers: [DashboardController],

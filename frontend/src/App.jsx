@@ -11,6 +11,7 @@ import Revision from './pages/Revision';
 import ContestRadar from './pages/ContestRadar';
 import OAuthSuccess from './pages/OAuthSuccess';
 import A2ZSheet from './pages/A2ZSheet';
+import TLE31Sheet from './pages/TLE31Sheet';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/sheets" element={<Sheets />} />
         <Route path="/sheets/a2z" element={<A2ZSheet />} />
-        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/sheets/tle31" element={<TLE31Sheet />} />
       </Routes>
     </BrowserRouter>
   );

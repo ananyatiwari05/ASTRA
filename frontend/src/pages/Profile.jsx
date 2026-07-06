@@ -9,7 +9,7 @@ import {
   updateSheetHandles,
   syncCodeforces,
   syncA2ZSheet,
-  syncTLESheet,
+  syncTLE31Sheet,
   getUserId,
 } from '../api/client';
 import { useNavigate } from 'react-router-dom';
@@ -33,8 +33,11 @@ export default function Profile() {
     cfHandle: '',
     ccHandle: '',
     lcHandle: '',
-    a2zEmail: '',
-    tleEmail: '',
+    a2zSheetEmail: '',
+    a2zSheetUrl: '',
+    tleSheetEmail: '',
+    tleSheetUrl: '',
+    trackingPreference: 'manual',
   });
 
   const [syncTimes, setSyncTimes] = useState({
@@ -58,8 +61,11 @@ export default function Profile() {
         cfHandle: user.cfHandle || '',
         ccHandle: user.ccHandle || '',
         lcHandle: user.lcHandle || '',
-        a2zEmail: user.a2zEmail || '',
-        tleEmail: user.TLEliminatorEmail || '',
+        a2zSheetEmail: user.a2zSheetEmail || '',
+        a2zSheetUrl: user.a2zSheetUrl || '',
+        tleSheetEmail: user.tleSheetEmail || '',
+        tleSheetUrl: user.tleSheetUrl || '',
+        trackingPreference: user.trackingPreference || 'manual',
       });
 
       setSyncTimes({
@@ -106,8 +112,11 @@ export default function Profile() {
       const userId = getUserId();
 
       await updateSheetHandles(userId, {
-        a2zEmail: formData.a2zEmail,
-        dailyEliminatorEmail: formData.tleEmail,
+        a2zSheetEmail: formData.a2zSheetEmail,
+        a2zSheetUrl: formData.a2zSheetUrl,
+        tleSheetEmail: formData.tleSheetEmail,
+        tleSheetUrl: formData.tleSheetUrl,
+        trackingPreference: formData.trackingPreference,
       });
 
       alert('Sheet emails saved');
@@ -139,7 +148,7 @@ export default function Profile() {
           a2zLastSyncedAt: new Date().toISOString(),
         }));
       } else {
-        result = await syncTLESheet(userId);
+        result = await syncTLE31Sheet(userId);
         setSyncTimes((prev) => ({
           ...prev,
           tleLastSyncedAt: new Date().toISOString(),
@@ -245,38 +254,53 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="bg-gray-900 rounded-xl p-6 space-y-4">
-            <h2 className="text-xl font-semibold">Sheet Accounts</h2>
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              Tracking Preferences
+            </h2>
 
-            <div>
-              <label>A2Z Sheet Email</label>
-              <input
-                type="email"
-                name="a2zEmail"
-                value={formData.a2zEmail}
-                onChange={handleChange}
-                className="w-full mt-2 p-3 rounded bg-gray-800"
-                placeholder="your.email@example.com"
-              />
+            <div className="space-y-4 mb-8">
+              <label className="flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all hover:bg-gray-800/30 border-cyan-500/50 bg-cyan-950/10">
+                <input
+                  type="radio"
+                  name="trackingPreference"
+                  value="manual"
+                  checked={formData.trackingPreference === 'manual'}
+                  onChange={handleChange}
+                  className="mt-1"
+                />
+                <div>
+                  <div className="font-semibold text-white">Manual Tracking (Default)</div>
+                  <div className="text-sm text-gray-400 mt-1">
+                    Track your progress directly inside ASTRA. Fast, instant, and fully integrated.
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all hover:bg-gray-800/30 border-gray-800 bg-gray-950/50 opacity-60">
+                <input
+                  type="radio"
+                  name="trackingPreference"
+                  value="sheets"
+                  checked={formData.trackingPreference === 'sheets'}
+                  onChange={handleChange}
+                  disabled
+                  className="mt-1"
+                />
+                <div>
+                  <div className="font-semibold text-white">Google Sheets Import (Coming Soon)</div>
+                  <div className="text-sm text-gray-400 mt-1">
+                    Automatically sync progress from external Google Sheets. Currently unavailable.
+                  </div>
+                </div>
+              </label>
             </div>
-
-            <div>
-              <label>TLE Eliminator Email</label>
-              <input
-                type="email"
-                name="tleEmail"
-                value={formData.tleEmail}
-                onChange={handleChange}
-                className="w-full mt-2 p-3 rounded bg-gray-800"
-                placeholder="your.email@example.com"
-              />
-            </div>
-
+            
             <button
               onClick={saveSheetHandles}
               className="w-full bg-cyan-600 py-3 rounded-lg"
             >
-              Save Sheet Emails
+              Save Settings
             </button>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-800">
