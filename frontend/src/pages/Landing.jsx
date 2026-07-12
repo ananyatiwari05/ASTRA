@@ -336,7 +336,6 @@ const Landing = () => {
             <Link to="/analytics" className="hover:text-white transition-colors">Analytics</Link>
             <Link to="/contest-radar" className="hover:text-white transition-colors">Contest Radar</Link>
             <Link to="/revision" className="hover:text-white transition-colors">Revision</Link>
-            <a href="#" className="hover:text-white transition-colors">Roadmap</a>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
@@ -372,7 +371,7 @@ const Landing = () => {
             >
               <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="inline-flex items-center px-3 py-1 rounded-full bg-indigo-950/50 border border-indigo-500/30 text-indigo-300 text-xs font-medium mb-6">
                 <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-indigo-400 mr-2" />
-                The Complete CP Companion
+                The Complete DSA Companion
               </motion.div>
               <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
                 <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6 }} className="inline-block">All Your Coding</motion.span><br/>

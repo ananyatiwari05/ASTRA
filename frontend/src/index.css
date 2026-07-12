@@ -12,70 +12,100 @@
 
 .fc-theme-standard td,
 .fc-theme-standard th {
-  border-color: #1f2937;
+  border-color: #1e293b; /* slate-800 */
 }
 
 .fc-theme-standard .fc-scrollgrid {
-  border-color: #1f2937;
+  border-color: #1e293b;
 }
 
 .fc .fc-toolbar-title {
   color: white;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 800;
+  background: linear-gradient(to right, #ffffff, #c7d2fe);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .fc .fc-button {
-  background: #111827 !important;
-  border: 1px solid #374151 !important;
-  color: white !important;
-  border-radius: 10px !important;
+  background: rgba(30, 27, 75, 0.6) !important; /* indigo-950 */
+  border: 1px solid rgba(79, 70, 229, 0.3) !important; /* indigo-500/30 */
+  color: #c7d2fe !important; /* indigo-200 */
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 0.4em 0.8em !important;
+  transition: all 0.3s ease !important;
 }
 
 .fc .fc-button:hover {
-  background: #06b6d4 !important;
-  color: black !important;
+  background: rgba(79, 70, 229, 0.2) !important; /* indigo-500/20 */
+  border-color: rgba(79, 70, 229, 0.6) !important;
+  color: white !important;
 }
 
 .fc .fc-daygrid-day {
-  background: #050505;
-  transition: all 0.2s ease;
+  background: transparent;
+  transition: all 0.3s ease;
 }
 
 .fc .fc-daygrid-day:hover {
-  background: #0f172a;
+  background: rgba(79, 70, 229, 0.05); /* very faint indigo hover */
 }
 
 .fc .fc-daygrid-day-number {
-  color: #d1d5db;
+  color: #94a3b8; /* slate-400 */
   font-weight: 600;
+  padding: 8px !important;
 }
 
 .fc .fc-col-header-cell {
-  background: #111827;
-  color: #06b6d4;
+  background: #0a0f1c !important; /* matches page background */
+  color: #a5b4fc !important; /* indigo-300 */
   font-weight: 700;
-  padding: 10px 0;
+  padding: 16px 0 !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(79, 70, 229, 0.3) !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 8px !important;
+}
+
+.fc-theme-standard th {
+  background: #0a0f1c !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(79, 70, 229, 0.3) !important;
+}
+
+.fc .fc-scrollgrid-section-header > td {
+  border: none !important;
 }
 
 .fc .fc-event {
-  background: #06b6d4 !important;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed) !important; /* indigo to purple */
   border: none !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   padding: 2px 6px !important;
-  color: black !important;
-  font-weight: 700;
+  color: white !important;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.3);
+  transition: all 0.2s ease;
 }
 
 .fc .fc-event:hover {
   transform: scale(1.02);
+  box-shadow: 0 0 15px rgba(79, 70, 229, 0.6);
 }
 
 .fc .fc-day-today {
-  background: rgba(6, 182, 212, 0.12) !important;
+  background: rgba(79, 70, 229, 0.1) !important; /* subtle indigo tint for today */
 }
 
 .fc .fc-daygrid-day-frame {
-  min-height: 90px;
+  min-height: 100px;
 }

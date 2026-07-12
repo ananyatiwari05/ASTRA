@@ -15,11 +15,16 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-gray-950 border-r border-gray-800 flex flex-col min-h-screen text-white">
+    <aside className="w-64 bg-[#0a0f1c]/90 backdrop-blur-xl border-r border-slate-800/80 flex flex-col min-h-screen text-white relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.2)]">
       {/* Brand / Logo */}
-      <div className="p-6 border-b border-gray-800 flex items-center justify-between">
-        <span className="text-2xl font-black tracking-wider text-cyan-400">ASTRA</span>
-        <span className="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">v1.0</span>
+      <div className="p-6 border-b border-slate-800/80 flex items-center justify-between">
+        <NavLink
+          to="/"
+          className="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 hover:from-indigo-300 hover:to-purple-300 transition"
+        >
+          ASTRA
+        </NavLink>
+        <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950/50 text-indigo-400 border border-indigo-500/30 font-mono tracking-wider">v1.0</span>
       </div>
 
       {/* Navigation Links */}
@@ -29,10 +34,10 @@ export default function Sidebar() {
             key={item.name}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center px-4 py-2.5 rounded font-medium text-sm transition ${
+              `flex items-center px-4 py-3 rounded-lg font-medium text-sm transition-all ${
                 isActive
-                  ? 'bg-gray-900 text-cyan-400 border border-gray-800'
-                  : 'text-gray-400 hover:bg-gray-900/50 hover:text-white'
+                  ? 'bg-indigo-600/10 text-indigo-300 border border-indigo-500/20 shadow-[0_0_15px_rgba(79,70,229,0.1)]'
+                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white border border-transparent'
               }`
             }
           >

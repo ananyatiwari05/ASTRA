@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export default function ContestFilters({
   selectedPlatform,
@@ -12,20 +13,25 @@ export default function ContestFilters({
   ];
 
   return (
-    <div className="flex flex-wrap gap-3 mb-6">
-      {filters.map((filter) => (
-        <button
-          key={filter}
-          onClick={() => setSelectedPlatform(filter)}
-          className={`px-4 py-2 rounded-lg border transition ${
-            selectedPlatform === filter
-              ? 'bg-cyan-500 text-black border-cyan-500'
-              : 'bg-[#111] text-gray-300 border-gray-800 hover:border-cyan-500/40'
-          }`}
-        >
-          {filter}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-3 mb-6 p-1">
+      {filters.map((filter) => {
+        const isActive = selectedPlatform === filter;
+        return (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            key={filter}
+            onClick={() => setSelectedPlatform(filter)}
+            className={`px-5 py-2 rounded-lg border text-sm font-semibold transition-all duration-300 relative overflow-hidden ${
+              isActive
+                ? 'bg-indigo-600 text-white border-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.4)]'
+                : 'bg-slate-900/50 text-slate-300 border-slate-700/50 hover:border-indigo-500/50 hover:text-indigo-200'
+            }`}
+          >
+            {filter}
+          </motion.button>
+        );
+      })}
     </div>
   );
 }
