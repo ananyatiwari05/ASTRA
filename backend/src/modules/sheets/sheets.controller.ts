@@ -9,13 +9,11 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { SheetsService } from './sheets.service';
-import { SheetsSyncService } from './sheet-sync.service';
 
 @Controller('sheets')
 export class SheetsController {
   constructor(
     private readonly sheetsService: SheetsService,
-    private readonly sheetsSyncService: SheetsSyncService,
   ) {}
 
   @Get()
@@ -26,18 +24,6 @@ export class SheetsController {
   @Get('user/:userId')
   getUserProgressSummary(@Param('userId') userId: string) {
     return this.sheetsService.getUserProgressSummary(parseInt(userId, 10));
-  }
-
-  @Post('sync/a2z/:userId')
-  @HttpCode(HttpStatus.OK)
-  syncA2Z(@Param('userId') userId: string) {
-    return this.sheetsSyncService.syncA2Z(parseInt(userId, 10));
-  }
-
-  @Post('sync/tle31/:userId')
-  @HttpCode(HttpStatus.OK)
-  syncTLE31(@Param('userId') userId: string) {
-    return this.sheetsSyncService.syncTLE31(parseInt(userId, 10));
   }
 
   @Post('manual-check')

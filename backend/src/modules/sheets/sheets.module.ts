@@ -9,7 +9,6 @@ import { SheetProblem } from './entities/sheet-problem.entity';
 import { UserSheetProgress } from './entities/user-sheet-progress.entity';
 import { SheetsService } from './sheets.service';
 import { SheetsController } from './sheets.controller';
-import { SheetsSyncService } from './sheet-sync.service';
 
 @Module({
   imports: [
@@ -23,7 +22,7 @@ import { SheetsSyncService } from './sheet-sync.service';
     UsersModule,
   ],
   controllers: [SheetsController],
-  providers: [SheetsService, SheetsSyncService],
-  exports: [SheetsService, SheetsSyncService, TypeOrmModule],
+  providers: [SheetsService],
+  exports: [SheetsService, TypeOrmModule],
 })
 export class SheetsModule { }

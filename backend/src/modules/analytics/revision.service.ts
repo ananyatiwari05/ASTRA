@@ -28,30 +28,28 @@ export class RevisionService {
   ) {}
 
   async getRevisionQueue(userId: number, limit = 10) {
-    const [solvedProblems, topicBreakdown, contestWeaknesses] =
+    const [solvedProblems, topicBreakdown, contestWeaknesses, submissions] =
       await Promise.all([
         this.unifiedSolveService.getUnifiedSolvedProblems(userId),
         this.unifiedSolveService.getTopicBreakdown(userId),
         this.unifiedSolveService.getContestWeaknesses(userId),
+        this.submissionsRepository.find({ where: { userId } })
       ]);
 
     const contestFailureMap = new Map(
       contestWeaknesses.map((entry) => [entry.topic, entry.failures]),
     );
 
+    const problemFailureCount = new Map<string, number>();
+    for (const sub of submissions) {
+      if (sub.verdict !== 'OK' && sub.verdict !== 'Accepted') {
+        const key = `${sub.platform}:${sub.problemId}`;
+        problemFailureCount.set(key, (problemFailureCount.get(key) ?? 0) + 1);
+      }
+    }
+
     const now = Date.now();
-    const queue: {
-      problemId: string;
-      title: string;
-      reason: string;
-      topic: string;
-      priority: 'high' | 'medium' | 'low';
-      priorityScore: number;
-      platform: string;
-      url: string;
-      difficulty: number;
-      tags: string[];
-    }[] = [];
+    const queue: any[] = [];
 
     for (const problem of solvedProblems) {
       const daysSinceSolve = problem.solvedAt
@@ -63,6 +61,7 @@ export class RevisionService {
       const primaryTopic = normalizeTag(problem.tags?.[0] ?? 'general');
       const topicStat = topicBreakdown.find((t) => t.topic === primaryTopic);
       const contestFailures = contestFailureMap.get(primaryTopic) ?? 0;
+      const timesFailed = problemFailureCount.get(`${problem.platform}:${problem.problemId}`) ?? 0;
 
       // 1. Old solved score
       const oldSolvedScore = Math.min(daysSinceSolve * 1.5, 150);
@@ -82,32 +81,45 @@ export class RevisionService {
       } else if (diff === 2 || diff >= 1400) {
         hardProblemScore = 25;
       }
+      
+      // 5. Repeated Mistakes score
+      const repeatedMistakeScore = Math.min(timesFailed * 15, 75);
 
       const priorityScore =
         oldSolvedScore +
         weakTopicScore +
         contestFailedScore +
-        hardProblemScore;
+        hardProblemScore +
+        repeatedMistakeScore;
 
       // Determine priority level
-      let priority: 'high' | 'medium' | 'low' = 'low';
-      if (priorityScore >= 120) {
-        priority = 'high';
-      } else if (priorityScore >= 60) {
-        priority = 'medium';
+      let priority: 'High' | 'Medium' | 'Low' = 'Low';
+      let suggestedDeadline = 'Next week';
+      
+      if (priorityScore >= 180) {
+        priority = 'High';
+        suggestedDeadline = 'Today';
+      } else if (priorityScore >= 100) {
+        priority = 'Medium';
+        suggestedDeadline = 'Within 3 days';
       }
 
       // Determine main reason
       let reason = 'Old solved problem';
-      if (successRate < 50) {
+      if (timesFailed >= 3) {
+        reason = `Repeatedly failed before solving (${timesFailed} times)`;
+      } else if (successRate < 50) {
         reason = `Weak in ${primaryTopic.replace(/_/g, ' ')}`;
       } else if (contestFailures >= 2) {
         reason = `Failed in ${contestFailures} contests on this topic`;
       } else if (diff >= 3) {
         reason = `Hard problem drill`;
       } else if (daysSinceSolve >= 30) {
-        reason = `Not revised in ${daysSinceSolve} days`;
+        reason = `Forgotten concept (Not revised in ${daysSinceSolve} days)`;
       }
+      
+      const estimatedRevisionTime = diff >= 3 ? 45 : diff === 2 ? 30 : 15;
+      const confidence = Math.max(10, Math.round(successRate - (timesFailed * 5) - (daysSinceSolve > 30 ? 20 : 0)));
 
       queue.push({
         problemId: problem.problemId,
@@ -120,6 +132,11 @@ export class RevisionService {
         url: problem.url,
         difficulty: diff,
         tags: problem.tags,
+        lastSolved: problem.solvedAt,
+        timesFailed,
+        estimatedRevisionTime,
+        confidence,
+        suggestedDeadline
       });
     }
 
@@ -144,8 +161,13 @@ export class RevisionService {
       topic: item.topic,
       priority: item.priority,
       priorityScore: item.priorityScore,
+      lastSolved: item.lastSolved,
+      timesFailed: item.timesFailed,
+      estimatedRevisionTime: item.estimatedRevisionTime,
+      confidence: item.confidence,
+      suggestedDeadline: item.suggestedDeadline,
       daysSinceLastAttempt: item.reason.includes('Not revised')
-        ? Number(item.reason.match(/\d+/)?.[0] ?? 0)
+        ? Number(item.reason.match(/\\d+/)?.[0] ?? 0)
         : 0,
     }));
   }

@@ -3,8 +3,8 @@ import { FiExternalLink } from 'react-icons/fi';
 
 import Sidebar from '../components/Sidebar';
 import {
-  fetchRevisionRecommendations,
-  fetchWeakTopics,
+  fetchRevisionQueue,
+  fetchDetailedWeaknesses,
   getUserId,
 } from '../api/client';
 
@@ -39,8 +39,8 @@ export default function Revision() {
       }
 
       const [recs, topics] = await Promise.all([
-        fetchRevisionRecommendations(userId, 20),
-        fetchWeakTopics(userId),
+        fetchRevisionQueue(userId, 20),
+        fetchDetailedWeaknesses(userId),
       ]);
 
       setRecommendations(recs || []);
@@ -143,20 +143,27 @@ export default function Revision() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 text-xs">
-                    <span className="px-2 py-1 rounded bg-gray-800 text-gray-300">
-                      {DIFFICULTY_LABELS[item.difficulty] ||
-                        item.difficulty}
+                    <span className="px-2 py-1 rounded bg-gray-800 text-gray-300 font-medium">
+                      {DIFFICULTY_LABELS[item.difficulty] || item.difficulty || 'Medium'}
                     </span>
-                    <span className={`px-2 py-1 rounded border ${
-                      item.priority === 'high' ? 'bg-red-950/40 text-red-300 border-red-900/30' :
-                      item.priority === 'medium' ? 'bg-yellow-950/40 text-yellow-300 border-yellow-900/30' :
-                      'bg-gray-800 text-gray-300 border-gray-700'
+                    <span className={`px-2 py-1 rounded border font-bold ${
+                      item.priority === 'High' ? 'bg-red-950/40 text-red-300 border-red-900/30' :
+                      item.priority === 'Medium' ? 'bg-orange-950/40 text-orange-300 border-orange-900/30' :
+                      'bg-indigo-950/40 text-indigo-300 border-indigo-900/30'
                     }`}>
-                      {(item.priority || 'low').toUpperCase()} PRIORITY
+                      {(item.priority || 'Low').toUpperCase()} PRIORITY
                     </span>
-                    <span className="px-2 py-1 rounded bg-orange-950/40 text-orange-300 border border-orange-900/30">
-                      {item.reason ||
-                        `${item.daysSinceLastAttempt ?? 0}d since last solve`}
+                    <span className="px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                      {item.reason}
+                    </span>
+                    <span className="px-2 py-1 rounded bg-teal-950/40 text-teal-300 border border-teal-900/30 font-medium">
+                      Est. Time: {item.estimatedRevisionTime}m
+                    </span>
+                    <span className="px-2 py-1 rounded bg-fuchsia-950/40 text-fuchsia-300 border border-fuchsia-900/30 font-medium">
+                      Confidence: {item.confidence}%
+                    </span>
+                    <span className="px-2 py-1 rounded bg-yellow-950/40 text-yellow-300 border border-yellow-900/30 font-bold">
+                      Deadline: {item.suggestedDeadline}
                     </span>
                   </div>
                   {item.tags?.length > 0 && (
@@ -176,9 +183,9 @@ export default function Revision() {
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded bg-cyan-700 hover:bg-cyan-600 text-sm"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded bg-cyan-700 hover:bg-cyan-600 text-sm font-semibold transition-colors mt-2"
                   >
-                    Revise
+                    Revise Problem
                     <FiExternalLink className="w-4 h-4" />
                   </a>
                 </div>
@@ -194,47 +201,52 @@ export default function Revision() {
             {weakTopics.map((topic) => (
               <div
                 key={topic.topic}
-                className="rounded-xl border border-gray-800 bg-gray-900/40 p-5"
+                className="rounded-xl border border-gray-800 bg-gray-900/40 p-5 shadow-lg relative overflow-hidden group"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                  <h3 className="text-lg font-semibold capitalize">
+                <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-colors duration-300 pointer-events-none" />
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4 relative z-10">
+                  <h3 className="text-xl font-bold capitalize text-white">
                     {topic.topic.replace(/_/g, ' ')}
                   </h3>
-                  <span className="text-sm text-rose-300">
-                    {topic.weaknessPercentage ??
-                      Math.round(100 - topic.successRate)}
-                    % weakness · {topic.successRate}% success
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm px-3 py-1 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/30">
+                      {Math.round(topic.weaknessScore)}% Weakness
+                    </span>
+                    <span className="text-sm px-3 py-1 rounded bg-green-500/20 text-green-400 font-semibold border border-green-500/30">
+                      {topic.successRate}% Success
+                    </span>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  {topic.problems?.length ? (
-                    topic.problems.map((problem) => (
+                <div className="space-y-2 relative z-10 mt-6">
+                  <h4 className="text-sm font-semibold text-slate-400 mb-3 tracking-wide uppercase">Suggested Practice</h4>
+                  {topic.suggestedProblems?.length ? (
+                    topic.suggestedProblems.map((problem) => (
                       <div
                         key={`${problem.platform}-${problem.problemId}`}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-800 bg-black/30 px-4 py-3"
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-800 bg-black/40 px-4 py-3 hover:bg-slate-800/50 transition-colors"
                       >
                         <div>
-                          <p className="font-medium">{problem.title}</p>
-                          <p className="text-xs text-gray-500">
-                            {problem.platform} ·{' '}
-                            {DIFFICULTY_LABELS[problem.difficulty]}
+                          <p className="font-medium text-slate-200">{problem.title}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            <span className="uppercase font-semibold text-slate-400">{problem.platform}</span> ·{' '}
+                            {DIFFICULTY_LABELS[problem.difficulty] || problem.difficulty || 'Medium'}
                           </p>
                         </div>
                         <a
                           href={problem.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-cyan-400 hover:underline inline-flex items-center gap-1"
+                          className="text-sm text-cyan-400 hover:text-cyan-300 font-medium hover:underline inline-flex items-center gap-1.5"
                         >
-                          Open
+                          Solve Now
                           <FiExternalLink className="w-3.5 h-3.5" />
                         </a>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500">
-                      No suggested problems for this topic.
+                    <p className="text-sm text-gray-500 italic bg-slate-900/50 p-4 rounded-lg border border-slate-800">
+                      No suggested problems for this topic. All known problems are already solved!
                     </p>
                   )}
                 </div>

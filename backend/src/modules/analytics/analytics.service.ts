@@ -104,6 +104,7 @@ export class AnalyticsService {
     };
   }
 
+  
   async getDetailedWeaknesses(userId: number) {
     const [
       topicBreakdown,
@@ -128,22 +129,31 @@ export class AnalyticsService {
     const contestIds = new Set(contests.map((c) => c.contestId));
     const contestAttemptsMap = new Map<string, number>();
     const contestFailuresMap = new Map<string, number>();
+    const repeatedWrongMap = new Map<string, number>();
+    const lastAttemptMap = new Map<string, Date>();
 
     for (const submission of submissions) {
-      const contestMatch = submission.problemId.match(/^(\d+)-/);
-      if (!contestMatch) continue;
-      const contestId = Number(contestMatch[1]);
-      if (!contestIds.has(contestId)) continue;
-
+      const isContest = submission.problemId.match(/^(\d+)-/);
       const isSolved = isAcceptedVerdict(submission.verdict);
 
       for (const tag of submission.tags ?? []) {
         const topic = normalizeTag(tag);
         if (!topic) continue;
 
-        contestAttemptsMap.set(topic, (contestAttemptsMap.get(topic) ?? 0) + 1);
+        const currentLast = lastAttemptMap.get(topic);
+        if (!currentLast || submission.submittedAt > currentLast) {
+          lastAttemptMap.set(topic, submission.submittedAt);
+        }
+
+        if (isContest) {
+          contestAttemptsMap.set(topic, (contestAttemptsMap.get(topic) ?? 0) + 1);
+          if (!isSolved) {
+            contestFailuresMap.set(topic, (contestFailuresMap.get(topic) ?? 0) + 1);
+          }
+        }
+
         if (!isSolved) {
-          contestFailuresMap.set(topic, (contestFailuresMap.get(topic) ?? 0) + 1);
+          repeatedWrongMap.set(topic, (repeatedWrongMap.get(topic) ?? 0) + 1);
         }
       }
     }
@@ -168,6 +178,8 @@ export class AnalyticsService {
       }
     }
 
+    const now = new Date();
+
     return topicBreakdown
       .map((topicStat) => {
         const topic = topicStat.topic;
@@ -182,26 +194,38 @@ export class AnalyticsService {
         const sheetUnsolved = sheetUnsolvedMap.get(topic) ?? 0;
         const sheetUnsolvedRate =
           sheetTotal > 0 ? (sheetUnsolved / sheetTotal) * 100 : 0;
+          
+        const repeatedWrongs = repeatedWrongMap.get(topic) ?? 0;
+        
+        const lastAttempt = lastAttemptMap.get(topic);
+        const daysInactive = lastAttempt ? (now.getTime() - lastAttempt.getTime()) / (1000 * 3600 * 24) : 30;
 
-        // weakness = (100-successRate)*0.5 + contestFailureRate*0.3 + sheetUnsolvedRate*0.2
+        // Weakness Engine Formula
+        // 40% Low Success Rate
+        // 20% Contest Failure Rate
+        // 20% Sheet Incompletion Rate
+        // 10% Inactivity (capped at 30 days)
+        // 10% Repeated Wrongs penalty
+        
+        const inactivityPenalty = Math.min(daysInactive, 30) / 30 * 100;
+        const repeatedWrongPenalty = Math.min(repeatedWrongs, 20) / 20 * 100;
+
         const weaknessScore =
           Math.round(
-            ((100 - successRate) * 0.5 +
-              contestFailureRate * 0.3 +
-              sheetUnsolvedRate * 0.2) *
+            ((100 - successRate) * 0.4 +
+              contestFailureRate * 0.2 +
+              sheetUnsolvedRate * 0.2 +
+              inactivityPenalty * 0.1 +
+              repeatedWrongPenalty * 0.1) *
               100,
           ) / 100;
 
         const reasons: string[] = [];
-        if (successRate < 50) {
-          reasons.push(`Low success rate (${Math.round(successRate)}%)`);
-        }
-        if (contestFailures >= 2) {
-          reasons.push(`Failed in ${contestFailures} contest problems`);
-        }
-        if (sheetUnsolved > 0) {
-          reasons.push(`${sheetUnsolved} unsolved sheet problems`);
-        }
+        if (successRate < 50) reasons.push(`Low success rate (${Math.round(successRate)}%)`);
+        if (contestFailures >= 2) reasons.push(`Failed in ${contestFailures} contest problems`);
+        if (sheetUnsolvedRate > 50) reasons.push(`${sheetUnsolved} unsolved sheet problems (${Math.round(sheetUnsolvedRate)}%)`);
+        if (daysInactive > 14) reasons.push(`Inactive for ${Math.round(daysInactive)} days`);
+        if (repeatedWrongs > 5) reasons.push(`${repeatedWrongs} repeated wrong submissions`);
 
         const failedProblems = sheetProblems
           .filter((problem) => {
@@ -229,6 +253,8 @@ export class AnalyticsService {
           successRate,
           solved: topicStat.solved,
           attempted: topicStat.attempted,
+          contestFailures,
+          sheetUnsolved,
         };
       })
       .sort((a, b) => b.weaknessScore - a.weaknessScore);

@@ -195,6 +195,20 @@ export async function fetchRevisionQueue(userId, limit = 10) {
   return data;
 }
 
+export async function fetchContestAnalysis(userId) {
+  const { data } = await withRetry(() =>
+    api.get(`/analytics/user/${userId}/contest-analysis`),
+  );
+  return data;
+}
+
+export async function fetchUpsolvingQueue(userId) {
+  const { data } = await withRetry(() =>
+    api.get(`/analytics/user/${userId}/upsolving`),
+  );
+  return data;
+}
+
 export async function fetchUpcomingContests() {
   const { data } = await api.get('/contests/upcoming');
   return data;

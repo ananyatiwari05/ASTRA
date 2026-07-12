@@ -305,12 +305,16 @@ export default function Dashboard() {
                     <div className="space-y-3">
                       {revisionRecommendations.slice(0, 5).map((item) => (
                         <div
-                          key={item.id}
+                          key={item.problemId || item.id}
                           className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2"
                         >
                           <span className="font-medium text-indigo-300 truncate max-w-[70%]">{item.title}</span>
-                          <span className="text-slate-400 text-xs bg-slate-800 px-2 py-1 rounded whitespace-nowrap">
-                            {item.daysSinceLastAttempt}d ago
+                          <span className={`text-xs px-2 py-1 rounded whitespace-nowrap font-bold ${
+                            item.priority === 'High' ? 'bg-red-500/20 text-red-400' :
+                            item.priority === 'Medium' ? 'bg-orange-500/20 text-orange-400' :
+                            'bg-indigo-500/20 text-indigo-400'
+                          }`}>
+                            {item.priority}
                           </span>
                         </div>
                       ))}

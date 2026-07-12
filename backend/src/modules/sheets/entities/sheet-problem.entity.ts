@@ -31,6 +31,9 @@ export class SheetProblem {
   topic!: string;
 
   @Column({ nullable: true })
+  subTopic!: string;
+
+  @Column({ nullable: true })
   ratingBucket!: string;
 
   @Column({ default: 0 })
@@ -38,4 +41,14 @@ export class SheetProblem {
 
   @Column({ nullable: true })
   sourceUrl!: string;
+
+  // Additional fields for complete A2Z representation
+  @Column({ nullable: true })
+  estimatedTime!: number;
+
+  @Column('simple-array', { nullable: true })
+  prerequisites!: string[];
+
+  @Column({ default: false })
+  isOptional!: boolean;
 }

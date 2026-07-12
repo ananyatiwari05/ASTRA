@@ -15,26 +15,20 @@ import {
 
 config({ path: path.join(__dirname, '../.env') });
 
-type SeedProblem = {
-  platform: string;
-  title: string;
-  topic?: string;
-  difficulty: string | number;
-  url: string;
-  problemId?: string;
-  tags?: string[];
-};
+interface A2ZProblem {
+  id: string;
+  qnTitle: string;
+  gfg: string | null;
+  leetcode: string | null;
+  difficulty?: string;
+  estimatedTime?: number;
+  prerequisites?: string[];
+  isOptional?: boolean;
+}
 
-type SeedSheet = {
-  sheet: string;
-  problems: SeedProblem[];
-};
+type A2ZJson = Record<string, Record<string, A2ZProblem[]>>;
 
 async function seedSheets() {
-  const dataPath = path.join(__dirname, '../data/sheets/index.json');
-  const raw = fs.readFileSync(dataPath, 'utf-8');
-  const sheets = JSON.parse(raw) as SeedSheet[];
-
   const dataSource = new DataSource({
     type: 'postgres',
     host: process.env.DB_HOST,
@@ -54,36 +48,70 @@ async function seedSheets() {
   
   const sheetProblemRepo = dataSource.getRepository(SheetProblem);
 
-  // A2Z Seed (Only using real data from JSON)
+  // A2Z Seed
   console.log('Seeding A2Z problems from local JSON...');
-  const a2zJsonSheet = sheets.find((s) => s.sheet === 'A2Z');
-  const a2zBaseProblems = a2zJsonSheet ? a2zJsonSheet.problems : [];
+  const a2zDataPath = path.join(__dirname, '../data/sheets/a2z.json');
+  let a2zJson: A2ZJson = {};
+  try {
+    const rawContent = fs.readFileSync(a2zDataPath, 'utf-8');
+    try {
+      a2zJson = JSON.parse(rawContent);
+    } catch (e) {
+      // Use VM to safely evaluate loosely formatted JS object (e.g. unquoted keys, single quotes)
+      const vm = require('vm');
+      const sandbox = { result: {} };
+      vm.createContext(sandbox);
+      // Try with and without curly braces
+      try {
+        vm.runInContext(`result = (${rawContent})`, sandbox);
+      } catch (e2) {
+        vm.runInContext(`result = ({${rawContent}})`, sandbox);
+      }
+      a2zJson = sandbox.result;
+    }
+    console.log(`Parsed A2Z topics: ${Object.keys(a2zJson).length}`);
+  } catch (e) {
+    console.log('Failed to parse a2z.json format, skipping A2Z seed. Error:', e.message);
+  }
 
   const a2zProblemsToInsert: Partial<SheetProblem>[] = [];
+  let a2zCount = 1;
 
-  for (let i = 0; i < a2zBaseProblems.length; i++) {
-    const item = a2zBaseProblems[i];
-    const platform = item.platform.toLowerCase();
-    const problemId =
-      item.problemId ||
-      extractProblemId(platform, item.url, item.title) ||
-      `a2z-p${i + 1}`;
+  for (const [topic, subTopics] of Object.entries(a2zJson)) {
+    for (const [subTopic, problems] of Object.entries(subTopics)) {
+      for (const item of problems) {
+        // Determine platform and URL
+        let platform = 'unknown';
+        let url = '';
+        if (item.leetcode) {
+          platform = 'leetcode';
+          url = item.leetcode;
+        } else if (item.gfg) {
+          platform = 'geeksforgeeks';
+          url = item.gfg;
+        }
 
-    a2zProblemsToInsert.push({
-      sheetName: 'A2Z',
-      problemNumber: i + 1,
-      orderIndex: i + 1,
-      problemId,
-      title: item.title,
-      platform,
-      topic: item.topic || 'General',
-      difficulty: String(item.difficulty || 'Medium'),
-      tags: normalizeTags([
-        ...(item.tags ?? []),
-        ...(item.topic ? [item.topic] : []),
-      ]),
-      sourceUrl: item.url,
-    });
+        const problemId = extractProblemId(platform, url, item.qnTitle) || `a2z-p${a2zCount}`;
+
+        a2zProblemsToInsert.push({
+          sheetName: 'A2Z',
+          problemNumber: a2zCount,
+          orderIndex: a2zCount,
+          problemId,
+          title: item.qnTitle,
+          platform,
+          topic,
+          subTopic,
+          difficulty: item.difficulty || 'Medium',
+          tags: normalizeTags([topic, subTopic]),
+          sourceUrl: url,
+          estimatedTime: item.estimatedTime || 30, // Default 30 mins
+          prerequisites: item.prerequisites || [],
+          isOptional: item.isOptional || false,
+        });
+        a2zCount++;
+      }
+    }
   }
 
   // TLE31 Seed (Fetching real Codeforces problems by rating)
@@ -98,7 +126,6 @@ async function seedSheets() {
       
       let problemCount = 1;
       for (const rating of ratings) {
-        // Get up to 31 problems for each rating bucket
         const bucketProblems = allProblems.filter((p: any) => p.rating === rating).slice(0, 31);
         for (let i = 0; i < bucketProblems.length; i++) {
           const cp = bucketProblems[i];
@@ -125,7 +152,6 @@ async function seedSheets() {
 
   // Bulk insert
   const allProblems = [...a2zProblemsToInsert, ...tle31ProblemsToInsert];
-  // Insert in chunks to avoid query limits
   const chunkSize = 100;
   for (let i = 0; i < allProblems.length; i += chunkSize) {
     await sheetProblemRepo.save(allProblems.slice(i, i + chunkSize));

@@ -174,8 +174,8 @@ export class DashboardService {
       sheetProgress,
       sheetProgressSummary,
     ] = await Promise.all([
-      this.analyticsService.getUserWeaknesses(userId),
-      this.revisionService.getRevisionRecommendations(
+      this.analyticsService.getDetailedWeaknesses(userId),
+      this.revisionService.getRevisionQueue(
         userId,
         10,
       ),

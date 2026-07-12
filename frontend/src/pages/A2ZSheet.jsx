@@ -38,6 +38,7 @@ function mapProblem(problem, solvedKeys) {
     platform: problem.platform,
     solved: problem.solved || solvedKeys.has(key),
     url: problem.url,
+    subTopic: problem.subTopic || 'General',
   };
 }
 
@@ -268,13 +269,15 @@ export default function A2ZSheet() {
                 const topicSolved = topicProblems.filter(p => p.solved).length;
                 const topicTotal = topicProblems.length;
 
+                const uniqueSubTopics = Array.from(new Set(topicProblems.map(p => p.subTopic)));
+
                 return (
                   <details
                     key={topic}
                     open
                     className="group border border-gray-800 bg-gray-900/50 rounded-xl overflow-hidden"
                   >
-                    <summary className="flex items-center justify-between p-4 bg-gray-950/80 cursor-pointer select-none">
+                    <summary className="flex items-center justify-between p-4 bg-gray-950/80 cursor-pointer select-none hover:bg-gray-900/80 transition-colors">
                       <div className="flex items-center gap-3">
                         <h2 className="text-lg font-semibold text-white">{topic}</h2>
                         <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded-md font-mono">
@@ -293,11 +296,19 @@ export default function A2ZSheet() {
                         </span>
                       </div>
                     </summary>
-                    <div className="p-1 border-t border-gray-800/50">
-                      <ProblemTable
-                        problems={topicProblems}
-                        onToggleSolved={toggleSolved}
-                      />
+                    <div className="p-1 border-t border-gray-800/50 space-y-2">
+                      {uniqueSubTopics.map(subTopic => {
+                        const subTopicProblems = topicProblems.filter(p => p.subTopic === subTopic);
+                        return (
+                          <div key={subTopic} className="bg-gray-900/40 rounded-lg p-2 mx-2 my-2 border border-gray-800/50">
+                            <h3 className="text-sm font-semibold text-gray-300 mb-2 ml-2 uppercase tracking-wide">{subTopic}</h3>
+                            <ProblemTable
+                              problems={subTopicProblems}
+                              onToggleSolved={toggleSolved}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </details>
                 );
