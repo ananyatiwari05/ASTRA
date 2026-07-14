@@ -124,7 +124,7 @@ export class DashboardService {
         ];
 
     const recentSubmissions = dbSubmissions.length
-      ? dbSubmissions.slice(0, 20).map((sub) => ({
+      ? dbSubmissions.slice(0, 100).map((sub) => ({
           platform: sub.platform,
           time: sub.submittedAt,
           problemName: sub.problemName,
@@ -144,7 +144,7 @@ export class DashboardService {
             ...(s as object),
             platform: 'leetcode',
           })),
-        ].slice(0, 20);
+        ].slice(0, 100);
 
     const contests = await this.contestRepo.find({
       where: { userId },

@@ -62,6 +62,11 @@ export async function syncCodeforces(userId) {
   return data;
 }
 
+export async function syncLeetcode(userId) {
+  const { data } = await api.post(`/lc/sync/${userId}`);
+  return data;
+}
+
 export async function fetchSheets() {
   const { data } = await api.get('/sheets');
   return data;

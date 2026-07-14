@@ -51,6 +51,9 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   cfLastSyncedAt!: Date | null;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lcLastSyncedAt!: Date | null;
+
   @OneToOne(
     () => CompetitiveProfile,
     (profile) => profile.user,

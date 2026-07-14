@@ -69,6 +69,12 @@ export class UsersService {
     });
   }
 
+  async updateLcLastSynced(id: number) {
+    await this.userRepo.update(id, {
+      lcLastSyncedAt: new Date(),
+    });
+  }
+
   async findByCodeforcesHandle(handle: string) {
     return this.userRepo.findOne({
       where: { cfHandle: handle },

@@ -11,6 +11,7 @@ import {
   fetchDashboard,
   getUserId,
   syncCodeforces,
+  syncLeetcode,
 } from '../api/client';
 import { FaSyncAlt, FaChartPie, FaLightbulb, FaBook } from 'react-icons/fa';
 import { SiCodeforces, SiLeetcode, SiCodechef } from 'react-icons/si';
@@ -91,13 +92,17 @@ export default function Dashboard() {
     try {
       setIsSyncing(true);
       setError('');
-      await syncCodeforces(userId);
+      if (platform === 'leetcode') {
+        await syncLeetcode(userId);
+      } else {
+        await syncCodeforces(userId);
+      }
       await fetchDashboardData();
     } catch (err) {
       console.error(err);
       setError(
         err.response?.data?.message ||
-          'Failed to sync Codeforces data',
+          `Failed to sync ${platform === 'leetcode' ? 'LeetCode' : 'Codeforces'} data`,
       );
     } finally {
       setIsSyncing(false);
@@ -184,16 +189,18 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSync}
-            disabled={isSyncing}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 transition-all font-medium text-sm shadow-[0_0_15px_rgba(79,70,229,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FaSyncAlt className={isSyncing ? "animate-spin" : ""} />
-            {isSyncing ? 'Syncing...' : 'Sync Codeforces'}
-          </motion.button>
+          {platform !== 'codechef' && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 transition-all font-medium text-sm shadow-[0_0_15px_rgba(79,70,229,0.1)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FaSyncAlt className={isSyncing ? "animate-spin" : ""} />
+              {isSyncing ? 'Syncing...' : `Sync ${platform === 'leetcode' ? 'LeetCode' : 'Codeforces'}`}
+            </motion.button>
+          )}
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -236,93 +243,93 @@ export default function Dashboard() {
           </div>
 
           {platform === 'codeforces' && (
-            <>
-              <motion.div variants={itemVariants}>
-                <RatingGraph
-                  history={filteredRatings}
-                  isLoading={isLoading}
-                />
+            <motion.div variants={itemVariants}>
+              <RatingGraph
+                history={filteredRatings}
+                isLoading={isLoading}
+              />
+            </motion.div>
+          )}
+
+          <motion.div variants={itemVariants}>
+            <SubmissionTable
+              submissions={filteredSubmissions}
+              isLoading={isLoading}
+            />
+          </motion.div>
+
+          {platform === 'codeforces' && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <motion.div variants={itemVariants} className="border border-slate-800/80 rounded-xl bg-slate-900/40 p-6 shadow-lg backdrop-blur-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-colors duration-300 pointer-events-none" />
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
+                    <FaChartPie />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Weak Topics</h3>
+                </div>
+                
+                {isLoading ? (
+                  <p className="text-slate-500 text-sm">Loading analysis...</p>
+                ) : weaknesses.length === 0 ? (
+                  <p className="text-slate-500 text-sm">
+                    No weakness data yet. Sync submissions first.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {weaknesses.slice(0, 5).map((item) => (
+                      <div
+                        key={item.topic}
+                        className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2"
+                      >
+                        <span className="font-medium text-slate-300">{item.topic}</span>
+                        <span className="text-slate-400 text-xs bg-slate-800 px-2 py-1 rounded">
+                          <span className="text-red-400 font-semibold">{item.successRate}%</span> · {item.unsolvedCount} unsolved
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
 
-              <motion.div variants={itemVariants}>
-                <SubmissionTable
-                  submissions={filteredSubmissions}
-                  isLoading={isLoading}
-                />
+              <motion.div variants={itemVariants} className="border border-slate-800/80 rounded-xl bg-slate-900/40 p-6 shadow-lg backdrop-blur-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-fuchsia-500/0 group-hover:bg-fuchsia-500/5 transition-colors duration-300 pointer-events-none" />
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400">
+                    <FaLightbulb />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">
+                    Revision Recommendations
+                  </h3>
+                </div>
+                
+                {isLoading ? (
+                  <p className="text-slate-500 text-sm">Loading recommendations...</p>
+                ) : revisionRecommendations.length === 0 ? (
+                  <p className="text-slate-500 text-sm">
+                    No revision recommendations yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {revisionRecommendations.slice(0, 5).map((item) => (
+                      <div
+                        key={item.problemId || item.id}
+                        className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2"
+                      >
+                        <span className="font-medium text-indigo-300 truncate max-w-[70%]">{item.title}</span>
+                        <span className={`text-xs px-2 py-1 rounded whitespace-nowrap font-bold ${
+                          item.priority === 'High' ? 'bg-red-500/20 text-red-400' :
+                          item.priority === 'Medium' ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-indigo-500/20 text-indigo-400'
+                        }`}>
+                          {item.priority}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
-
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <motion.div variants={itemVariants} className="border border-slate-800/80 rounded-xl bg-slate-900/40 p-6 shadow-lg backdrop-blur-sm relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-colors duration-300 pointer-events-none" />
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
-                      <FaChartPie />
-                    </div>
-                    <h3 className="text-lg font-bold text-white">Weak Topics</h3>
-                  </div>
-                  
-                  {isLoading ? (
-                    <p className="text-slate-500 text-sm">Loading analysis...</p>
-                  ) : weaknesses.length === 0 ? (
-                    <p className="text-slate-500 text-sm">
-                      No weakness data yet. Sync submissions first.
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {weaknesses.slice(0, 5).map((item) => (
-                        <div
-                          key={item.topic}
-                          className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2"
-                        >
-                          <span className="font-medium text-slate-300">{item.topic}</span>
-                          <span className="text-slate-400 text-xs bg-slate-800 px-2 py-1 rounded">
-                            <span className="text-red-400 font-semibold">{item.successRate}%</span> · {item.unsolvedCount} unsolved
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="border border-slate-800/80 rounded-xl bg-slate-900/40 p-6 shadow-lg backdrop-blur-sm relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-fuchsia-500/0 group-hover:bg-fuchsia-500/5 transition-colors duration-300 pointer-events-none" />
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-8 h-8 rounded-lg bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400">
-                      <FaLightbulb />
-                    </div>
-                    <h3 className="text-lg font-bold text-white">
-                      Revision Recommendations
-                    </h3>
-                  </div>
-                  
-                  {isLoading ? (
-                    <p className="text-slate-500 text-sm">Loading recommendations...</p>
-                  ) : revisionRecommendations.length === 0 ? (
-                    <p className="text-slate-500 text-sm">
-                      No revision recommendations yet.
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {revisionRecommendations.slice(0, 5).map((item) => (
-                        <div
-                          key={item.problemId || item.id}
-                          className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2"
-                        >
-                          <span className="font-medium text-indigo-300 truncate max-w-[70%]">{item.title}</span>
-                          <span className={`text-xs px-2 py-1 rounded whitespace-nowrap font-bold ${
-                            item.priority === 'High' ? 'bg-red-500/20 text-red-400' :
-                            item.priority === 'Medium' ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-indigo-500/20 text-indigo-400'
-                          }`}>
-                            {item.priority}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              </div>
-            </>
+            </div>
           )}
 
           {sheetProgressSummary && (
