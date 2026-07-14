@@ -15,12 +15,12 @@ export default function SheetFilters({
   const difficulties = ["All", "Easy", "Medium", "Hard"];
   const statuses = ["All", "Solved", "Unsolved"];
 
-  const hasActiveFilters = searchTerm !== "" || selectedTopic !== "All" || selectedDifficulty !== "All" || selectedStatus !== "All";
+  const hasActiveFilters = searchTerm !== "" || selectedTopic !== "All" || selectedStatus !== "All";
 
   const clearAllFilters = () => {
     setSearchTerm("");
     setSelectedTopic("All");
-    setSelectedDifficulty("All");
+    if (setSelectedDifficulty) setSelectedDifficulty("All");
     setSelectedStatus("All");
   };
 
@@ -67,28 +67,7 @@ export default function SheetFilters({
           </select>
         </div>
 
-        {/* Difficulty Buttons */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium font-mono uppercase">Difficulty:</span>
-          <div className="flex bg-gray-950 p-1 border border-gray-800 rounded-lg">
-            {difficulties.map((diff) => (
-              <button
-                key={diff}
-                onClick={() => setSelectedDifficulty(diff)}
-                className={`px-3 py-1 rounded-md text-[11px] font-semibold transition ${
-                  selectedDifficulty === diff
-                    ? diff === 'Easy' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
-                      : diff === 'Medium' ? 'bg-amber-950/60 text-amber-400 border border-amber-800/40'
-                      : diff === 'Hard' ? 'bg-red-950/60 text-red-400 border border-red-800/40'
-                      : 'bg-gray-800 text-cyan-400'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {diff}
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         {/* Status Buttons */}
         <div className="flex items-center gap-2">

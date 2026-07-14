@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Sidebar from '../components/Sidebar';
-import ProgressCard from '../components/sheets/ProgressCard';
-import StatsCards from '../components/sheets/StatsCards';
+import SiteNavbar from '../components/SiteNavbar';
+import Footer from '../components/Footer';
 import SheetFilters from '../components/sheets/SheetFilters';
-import TopicProgress from '../components/sheets/TopicProgress';
 import ProblemTable from '../components/sheets/ProblemTable';
-import RecentActivity from '../components/sheets/RecentActivity';
 import { motion } from 'framer-motion';
 import { FiArrowLeft } from 'react-icons/fi';
 import { FaFire } from 'react-icons/fa';
@@ -35,10 +32,10 @@ function mapProblem(problem, solvedKeys) {
     ratingBucket: problem.ratingBucket || problem.topic || 'Unrated',
     difficulty:
       DIFFICULTY_LABELS[problem.difficulty] ||
-      String(problem.difficulty || 'Medium'),
+      (problem.difficulty ? problem.difficulty.charAt(0).toUpperCase() + problem.difficulty.slice(1).toLowerCase() : 'Medium'),
     platform: problem.platform,
     solved: problem.solved || solvedKeys.has(key),
-    url: problem.url,
+    url: problem.sourceUrl || problem.url,
   };
 }
 
@@ -146,6 +143,13 @@ export default function TLE31Sheet() {
       ? Math.round((solvedCount / totalProblems) * 100)
       : 0;
 
+  const easyTotal = problems.filter(p => p.difficulty === 'Easy').length;
+  const easySolved = problems.filter(p => p.difficulty === 'Easy' && p.solved).length;
+  const mediumTotal = problems.filter(p => p.difficulty === 'Medium').length;
+  const mediumSolved = problems.filter(p => p.difficulty === 'Medium' && p.solved).length;
+  const hardTotal = problems.filter(p => p.difficulty === 'Hard').length;
+  const hardSolved = problems.filter(p => p.difficulty === 'Hard' && p.solved).length;
+
   const toggleSolved = async (id) => {
     const problem = problems.find(p => p.id === id);
     if (!problem) return;
@@ -196,59 +200,94 @@ export default function TLE31Sheet() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-black text-white">
-        <Sidebar />
-        <div className="flex-1 p-8 text-gray-400">Loading sheet...</div>
+      <div className="flex flex-col min-h-screen bg-[#0a0f1c] text-white relative overflow-hidden">
+        <SiteNavbar />
+        {/* Background Orbs */}
+        <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-indigo-700/10 rounded-full blur-[150px] pointer-events-none z-0" />
+        <div className="fixed bottom-0 right-0 w-[700px] h-[700px] bg-purple-700/10 rounded-full blur-[150px] pointer-events-none z-0" />
+        <div className="flex-1 flex-grow p-8 text-slate-400 pt-32 lg:pt-40 max-w-7xl mx-auto w-full relative z-10">
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-6 text-slate-400">
+            <div className="flex items-center gap-3">
+              <span className="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></span>
+              Loading sheet...
+            </div>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
-      <Sidebar />
+    <div className="flex flex-col min-h-screen bg-[#0a0f1c] text-slate-300 font-sans relative overflow-hidden">
+      <SiteNavbar />
+      
+      {/* Background Orbs */}
+      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-indigo-700/10 rounded-full blur-[150px] pointer-events-none z-0" />
+      <div className="fixed bottom-0 right-0 w-[700px] h-[700px] bg-purple-700/10 rounded-full blur-[150px] pointer-events-none z-0" />
 
-      <div className="flex-1 flex flex-col xl:flex-row overflow-y-auto">
-        <div className="flex-1 p-6 lg:p-8 space-y-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between border-b border-gray-900 pb-5">
-            <div>
-              <div className="flex items-center gap-2 mb-2 font-mono text-xs tracking-wider">
-                <Link
-                  to="/sheets"
-                  className="text-cyan-400 hover:underline flex items-center gap-1"
-                >
-                  <FiArrowLeft /> SHEETS
-                </Link>
-                <span className="text-gray-500">/</span>
-                <span className="text-gray-500">TLE31</span>
-              </div>
-              <h1 className="text-3xl font-black tracking-tight text-white uppercase">
+      <main className="flex-1 flex-grow max-w-7xl mx-auto w-full px-6 lg:px-8 space-y-6 pt-24 pb-12 relative z-10">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between border-b border-slate-800/80 pb-6 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-2 font-mono text-xs text-indigo-400 tracking-wider">
+              <Link to="/sheets" className="bg-indigo-950/50 border border-indigo-500/30 px-2 py-0.5 rounded-full hover:bg-indigo-900/50 transition-colors">
+                SHEETS
+              </Link>
+              <span className="text-slate-600">/</span>
+              <span className="text-slate-400">TLE31</span>
+            </div>
+            <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white mt-3">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-indigo-300">
                 TLE Eliminators Sheet
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                Master DSA from Basics to Advanced structures step by step.
-              </p>
+              </span>
+            </h1>
+            <p className="text-sm text-slate-400 mt-2 max-w-2xl leading-relaxed">
+              Master DSA from Basics to Advanced structures step by step.
+            </p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="rounded border border-red-800 bg-red-950/40 px-4 py-3 text-red-300">
+            {error}
+          </div>
+        )}
+
+        {/* Overall Progress Horizontal Card */}
+        <div className="w-full bg-[#0d1326]/60 border border-indigo-500/20 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between shadow-lg backdrop-blur-sm gap-4">
+          <div className="flex items-center gap-5">
+            {/* Circular Progress */}
+            <div className="relative w-[60px] h-[60px] flex items-center justify-center rounded-full bg-slate-900 border border-slate-800 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
+               <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                 <circle cx="30" cy="30" r="26" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-slate-800" />
+                 <circle cx="30" cy="30" r="26" stroke="currentColor" strokeWidth="3" fill="transparent" strokeDasharray="163.36" strokeDashoffset={163.36 - (163.36 * completionRate) / 100} className="text-indigo-500 transition-all duration-1000" strokeLinecap="round" />
+               </svg>
+               <span className="text-xs font-bold text-white relative z-10">{completionRate}%</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-200">Overall Progress</h3>
+              <p className="text-xs text-slate-400 mt-1"><span className="text-white font-bold text-sm">{solvedCount}</span> / {totalProblems}</p>
             </div>
           </div>
-
-          {error && (
-            <div className="rounded border border-red-800 bg-red-950/40 px-4 py-3 text-red-300">
-              {error}
+          
+          <div className="flex items-center gap-6 text-xs font-medium bg-slate-900/50 py-2 px-4 rounded-lg border border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+              <span className="text-slate-300">Easy</span>
+              <span className="text-white font-bold">{easySolved}<span className="text-slate-500 font-normal">/{easyTotal}</span></span>
             </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-              <ProgressCard solved={solvedCount} total={totalProblems} />
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]"></span>
+              <span className="text-slate-300">Medium</span>
+              <span className="text-white font-bold">{mediumSolved}<span className="text-slate-500 font-normal">/{mediumTotal}</span></span>
             </div>
-            <div className="md:col-span-2">
-              <StatsCards
-                solved={solvedCount}
-                remaining={remainingCount}
-                topicsCount={uniqueTopics.length}
-                completionRate={completionRate}
-              />
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+              <span className="text-slate-300">Hard</span>
+              <span className="text-white font-bold">{hardSolved}<span className="text-slate-500 font-normal">/{hardTotal}</span></span>
             </div>
           </div>
+        </div>
 
           <SheetFilters
             searchTerm={searchTerm}
@@ -274,72 +313,47 @@ export default function TLE31Sheet() {
               return (
                 <details
                   key={bucket}
-                  open
-                  className="group border border-gray-800 bg-gray-900/50 rounded-xl overflow-hidden"
+                  className="group border border-transparent bg-transparent rounded-lg overflow-hidden"
                 >
-                  <summary className="flex items-center justify-between p-4 bg-gray-950/80 cursor-pointer select-none">
+                  <summary className="flex items-center justify-between p-4 bg-[#0d1326] cursor-pointer select-none hover:bg-slate-900/80 transition-colors border border-slate-800/60 rounded-lg group-open:rounded-b-none group-open:border-b-transparent">
                     <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-semibold text-white">{bucket} Rating</h2>
-                      <span className="text-xs px-2 py-1 bg-gray-800 text-gray-300 rounded-md font-mono">
-                        {bucketSolved} / {bucketTotal}
+                      <span className="text-slate-500 group-open:rotate-90 transition-transform duration-200 text-xs">
+                        ▶
                       </span>
+                      <h2 className="text-[15px] font-medium text-slate-200">{bucket} Rating</h2>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden hidden sm:block">
+                      <div className="w-32 h-1 bg-slate-800 rounded-full overflow-hidden hidden sm:block shadow-inner">
                         <div
-                          className="h-full bg-blue-500 transition-all duration-500"
+                          className="h-full bg-indigo-500 transition-all duration-500"
                           style={{ width: `${(bucketSolved / bucketTotal) * 100}%` }}
                         />
                       </div>
-                      <span className="text-gray-500 group-open:rotate-180 transition-transform duration-200">
-                        ▼
+                      <span className="text-[11px] font-mono text-slate-400">
+                        {bucketSolved} / {bucketTotal}
                       </span>
                     </div>
                   </summary>
-                  <div className="p-1 border-t border-gray-800/50">
-                    <ProblemTable
-                      problems={bucketProblems}
-                      onToggleSolved={toggleSolved}
-                    />
+                  <div className="p-2 space-y-2 border border-t-0 border-slate-800/60 bg-slate-900/20 rounded-b-lg backdrop-blur-sm">
+                    <div className="bg-slate-900/40 rounded-lg p-3 mx-1 my-1 border border-slate-800/60 shadow-sm">
+                      <ProblemTable
+                        problems={bucketProblems}
+                        onToggleSolved={toggleSolved}
+                      />
+                    </div>
                   </div>
                 </details>
               );
             })}
             {filteredProblems.length === 0 && (
-              <div className="text-center py-10 text-gray-500 border border-gray-800 rounded-xl bg-gray-900/20">
+              <div className="text-center py-10 text-slate-500 border border-slate-800 rounded-xl bg-slate-900/20">
                 No problems match your filters.
               </div>
             )}
           </div>
-        </div>
+      </main>
 
-        <div className="w-full xl:w-80 border-t xl:border-t-0 xl:border-l border-gray-900 p-6 space-y-6 bg-gray-950/20 backdrop-blur-sm shrink-0">
-          <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900/40 to-orange-950/10 p-5 backdrop-blur-sm group">
-            <div className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-orange-500/10 blur-xl group-hover:scale-110 transition-transform" />
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-orange-950/40 border border-orange-800/30 text-orange-400">
-                <FaFire className="w-6 h-6 animate-pulse" />
-              </div>
-              <div>
-                <span className="text-[10px] font-semibold font-mono tracking-wider text-gray-500 uppercase">
-                  Current Streak
-                </span>
-                <p className="text-xl font-bold text-white mt-0.5">
-                  {currentStreak} Days
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <TopicProgress
-            problems={problems}
-            selectedTopic={selectedTopic}
-            setSelectedTopic={setSelectedTopic}
-          />
-
-          <RecentActivity activities={recentActivities} />
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }

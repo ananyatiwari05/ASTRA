@@ -11,7 +11,7 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
       case "Hard":
         return "text-rose-400 bg-rose-950/30 border border-rose-800/30";
       default:
-        return "text-gray-400 bg-gray-900 border border-gray-800";
+        return "text-slate-400 bg-slate-900 border border-slate-800";
     }
   };
 
@@ -25,15 +25,15 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
       case "codeforces":
         return "text-blue-400 bg-blue-950/30 border border-blue-900/30";
       default:
-        return "text-gray-400 bg-gray-900 border border-gray-800";
+        return "text-slate-400 bg-slate-900 border border-slate-800";
     }
   };
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-800 bg-gray-900/10 backdrop-blur-sm">
+    <div className="overflow-x-auto rounded-xl border border-slate-800/60 bg-slate-900/20 backdrop-blur-sm shadow-sm">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-gray-800 bg-gray-950/60 text-xs font-semibold uppercase tracking-wider text-gray-500 font-mono">
+          <tr className="border-b border-slate-800/60 bg-[#0d1326] text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">
             <th className="py-4 px-4 w-12 text-center">✓</th>
             <th className="py-4 px-4">Problem</th>
             <th className="py-4 px-4 hidden md:table-cell">Topic</th>
@@ -42,10 +42,10 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
             <th className="py-4 px-4 text-center w-20">Link</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-800/50">
+        <tbody className="divide-y divide-slate-800/40">
           {problems.length === 0 ? (
             <tr>
-              <td colSpan="6" className="py-8 text-center text-sm text-gray-500">
+              <td colSpan="6" className="py-8 text-center text-sm text-slate-500">
                 No problems found matching filters.
               </td>
             </tr>
@@ -53,8 +53,8 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
             problems.map((problem) => (
               <tr
                 key={problem.id}
-                className={`transition-colors duration-150 hover:bg-gray-900/35 group ${
-                  problem.solved ? 'bg-emerald-950/5 hover:bg-emerald-950/10' : ''
+                className={`transition-colors duration-150 hover:bg-slate-800/40 group ${
+                  problem.solved ? 'bg-emerald-950/10 hover:bg-emerald-950/20' : ''
                 }`}
               >
                 {/* Checkbox Column */}
@@ -64,7 +64,7 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
                       className={`mx-auto w-5 h-5 rounded flex items-center justify-center border ${
                         problem.solved
                           ? 'bg-emerald-500 border-emerald-400 text-black'
-                          : 'border-gray-700 bg-gray-950 text-transparent'
+                          : 'border-slate-700 bg-[#0d1326] text-transparent'
                       }`}
                     >
                       <FiCheck className="w-3.5 h-3.5 stroke-[3]" />
@@ -75,7 +75,7 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
                       className={`mx-auto w-5 h-5 rounded flex items-center justify-center border transition-all ${
                         problem.solved
                           ? 'bg-emerald-500 border-emerald-400 text-black'
-                          : 'border-gray-700 hover:border-cyan-500 bg-gray-950 text-transparent'
+                          : 'border-slate-700 hover:border-indigo-500 bg-[#0d1326] text-transparent'
                       }`}
                     >
                       <FiCheck className="w-3.5 h-3.5 stroke-[3]" />
@@ -89,9 +89,9 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
                     <span
                       className={`text-sm font-semibold select-none transition-colors ${
                         problem.solved
-                          ? 'text-gray-400 line-through decoration-gray-600'
-                          : 'text-gray-100'
-                      } ${readOnly ? '' : 'cursor-pointer hover:text-cyan-400'}`}
+                          ? 'text-slate-500 line-through decoration-slate-600'
+                          : 'text-slate-200'
+                      } ${readOnly ? '' : 'cursor-pointer hover:text-indigo-400'}`}
                       onClick={
                         readOnly
                           ? undefined
@@ -101,9 +101,9 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
                       {problem.title}
                     </span>
                     {/* Small topic & platform info visible only on mobile */}
-                    <span className="text-[10px] text-gray-500 md:hidden mt-0.5 flex gap-2">
+                    <span className="text-[10px] text-slate-500 md:hidden mt-0.5 flex gap-2">
                       <span>{problem.topic}</span>
-                      <span className="sm:hidden font-semibold text-gray-600">·</span>
+                      <span className="sm:hidden font-semibold text-slate-600">·</span>
                       <span className="sm:hidden">{problem.platform}</span>
                     </span>
                   </div>
@@ -111,7 +111,7 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
 
                 {/* Topic (Hidden on Mobile) */}
                 <td className="py-3.5 px-4 hidden md:table-cell">
-                  <span className="text-xs font-medium text-gray-400 bg-gray-950 px-2 py-0.5 rounded border border-gray-800/40">
+                  <span className="text-xs font-medium text-slate-400 bg-[#0d1326] px-2 py-0.5 rounded border border-slate-800/40">
                     {problem.topic}
                   </span>
                 </td>
@@ -136,7 +136,7 @@ export default function ProblemTable({ problems, onToggleSolved, readOnly = fals
                     href={problem.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex p-1.5 rounded-md hover:bg-gray-800 text-gray-400 hover:text-cyan-400 transition"
+                    className="inline-flex p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-indigo-400 transition"
                   >
                     <FiExternalLink className="w-4 h-4" />
                   </a>
