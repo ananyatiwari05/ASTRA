@@ -6,15 +6,24 @@ import { motion } from 'framer-motion';
 
 export default function ContestCalendar({ contests = [] }) {
   const events = useMemo(() => {
-    return contests.map((contest) => ({
-      id: contest.id,
-      title: contest.name,
-      date: contest.startTime,
-      url: contest.url,
-      backgroundColor: '#4f46e5', // indigo-600
-      borderColor: '#4f46e5',
-      textColor: '#ffffff'
-    }));
+    return contests.map((contest) => {
+      let platformClass = 'fc-event-default';
+      if (contest.platform === 'Codeforces') {
+        platformClass = 'fc-event-codeforces';
+      } else if (contest.platform === 'LeetCode') {
+        platformClass = 'fc-event-leetcode';
+      } else if (contest.platform === 'CodeChef') {
+        platformClass = 'fc-event-codechef';
+      }
+
+      return {
+        id: contest.id,
+        title: contest.name,
+        date: contest.startTime,
+        url: contest.url,
+        className: platformClass,
+      };
+    });
   }, [contests]);
 
   const handleEventClick = (info) => {

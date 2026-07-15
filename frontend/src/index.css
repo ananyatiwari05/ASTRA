@@ -109,3 +109,28 @@
 .fc .fc-daygrid-day-frame {
   min-height: 100px;
 }
+
+/* Platform Specific Event Colors */
+.fc .fc-event.fc-event-codeforces {
+  background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
+}
+.fc .fc-event.fc-event-codeforces:hover {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6) !important;
+}
+
+.fc .fc-event.fc-event-leetcode {
+  background: linear-gradient(135deg, #c2410c, #f97316) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.3) !important;
+}
+.fc .fc-event.fc-event-leetcode:hover {
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.6) !important;
+}
+
+.fc .fc-event.fc-event-codechef {
+  background: linear-gradient(135deg, #047857, #10b981) !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3) !important;
+}
+.fc .fc-event.fc-event-codechef:hover {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6) !important;
+}

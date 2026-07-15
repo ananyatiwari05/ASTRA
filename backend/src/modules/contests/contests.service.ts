@@ -55,13 +55,38 @@ export class ContestsService {
       }));
   }
 
-  
+  async getUpcomingCodechefContests() {
+    try {
+      const url = 'https://www.codechef.com/api/list/contests/all?sort_by=START&sorting_order=asc&offset=0&mode=all';
+      const response = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Referer': 'https://www.codechef.com/contests',
+        },
+      });
+
+      const contests = response.data.future_contests ?? [];
+
+      return contests.map((contest) => ({
+        id: contest.contest_code,
+        platform: 'CodeChef',
+        name: contest.contest_name,
+        startTime: new Date(contest.contest_start_date_iso),
+        durationHours: parseFloat(contest.contest_duration) / 60,
+        url: `https://www.codechef.com/${contest.contest_code}`,
+      }));
+    } catch (error) {
+      console.error('FAILED TO FETCH CODECHEF CONTESTS:', error.message);
+      return [];
+    }
+  }
 
   async getUpcomingContests() {
     const codeforces = await this.getUpcomingCodeforcesContests();
     const leetcode = await this.getUpcomingLeetCodeContests();
+    const codechef = await this.getUpcomingCodechefContests();
 
-    return [...codeforces, ...leetcode].sort(
+    return [...codeforces, ...leetcode, ...codechef].sort(
       (a, b) =>
         new Date(a.startTime).getTime() -
         new Date(b.startTime).getTime(),
