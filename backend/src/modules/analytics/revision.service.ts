@@ -63,59 +63,64 @@ export class RevisionService {
       const contestFailures = contestFailureMap.get(primaryTopic) ?? 0;
       const timesFailed = problemFailureCount.get(`${problem.platform}:${problem.problemId}`) ?? 0;
 
-      // 1. Old solved score
-      const oldSolvedScore = Math.min(daysSinceSolve * 1.5, 150);
+      // 1. Spaced Repetition Buckets (7, 15, 30, 60, 120 days) (30%)
+      let oldSolvedScore = 0;
+      if (daysSinceSolve >= 120) oldSolvedScore = 100 * 0.30;
+      else if (daysSinceSolve >= 60) oldSolvedScore = 80 * 0.30;
+      else if (daysSinceSolve >= 30) oldSolvedScore = 60 * 0.30;
+      else if (daysSinceSolve >= 15) oldSolvedScore = 40 * 0.30;
+      else if (daysSinceSolve >= 7) oldSolvedScore = 20 * 0.30;
 
-      // 2. Weak topic score
+      // 2. Weak topic score (25%)
       const successRate = topicStat ? topicStat.successRate : 100;
-      const weakTopicScore = (100 - successRate) * 1.5;
+      const weakTopicScore = (100 - successRate) * 0.25;
 
-      // 3. Contest failed topic score
-      const contestFailedScore = Math.min(contestFailures * 20, 100);
+      // 3. Contest failed topic score (20%)
+      const contestFailedScore = Math.min((contestFailures / 5) * 100, 100) * 0.20;
 
-      // 4. Hard problem score
+      // 4. Hard problem score (15%)
       let hardProblemScore = 0;
       const diff = problem.difficulty ?? 0;
       if (diff >= 3 || diff >= 1800) {
-        hardProblemScore = 50;
+        hardProblemScore = 100 * 0.15;
       } else if (diff === 2 || diff >= 1400) {
-        hardProblemScore = 25;
+        hardProblemScore = 50 * 0.15;
       }
       
-      // 5. Repeated Mistakes score
-      const repeatedMistakeScore = Math.min(timesFailed * 15, 75);
+      // 5. User Consistency (Repeated Mistakes / Times failed) (10%)
+      const userConsistencyScore = Math.min((timesFailed / 3) * 100, 100) * 0.10;
 
       const priorityScore =
         oldSolvedScore +
         weakTopicScore +
         contestFailedScore +
         hardProblemScore +
-        repeatedMistakeScore;
+        userConsistencyScore;
 
       // Determine priority level
       let priority: 'High' | 'Medium' | 'Low' = 'Low';
       let suggestedDeadline = 'Next week';
       
-      if (priorityScore >= 180) {
+      if (priorityScore >= 60) {
         priority = 'High';
         suggestedDeadline = 'Today';
-      } else if (priorityScore >= 100) {
+      } else if (priorityScore >= 40) {
         priority = 'Medium';
         suggestedDeadline = 'Within 3 days';
       }
 
       // Determine main reason
       let reason = 'Old solved problem';
-      if (timesFailed >= 3) {
-        reason = `Repeatedly failed before solving (${timesFailed} times)`;
+      if (daysSinceSolve >= 60) {
+        reason = `You solved this ${daysSinceSolve} days ago and never revised`;
+      } else if (contestFailures >= 3) {
+        reason = `You failed ${contestFailures} ${primaryTopic.replace(/_/g, ' ')} problems in contests`;
+      } else if (diff >= 3 && successRate > 50) {
+        reason = `You completed ${primaryTopic.replace(/_/g, ' ')} easy/medium but need hard drill`;
       } else if (successRate < 50) {
-        reason = `Weak in ${primaryTopic.replace(/_/g, ' ')}`;
-      } else if (contestFailures >= 2) {
-        reason = `Failed in ${contestFailures} contests on this topic`;
-      } else if (diff >= 3) {
-        reason = `Hard problem drill`;
-      } else if (daysSinceSolve >= 30) {
-        reason = `Forgotten concept (Not revised in ${daysSinceSolve} days)`;
+        reason = `Weak topic: ${primaryTopic.replace(/_/g, ' ')}`;
+      } else if (timesFailed >= 3) {
+        reason = `Repeatedly failed before solving (${timesFailed} times)`;
       }
       
       const estimatedRevisionTime = diff >= 3 ? 45 : diff === 2 ? 30 : 15;

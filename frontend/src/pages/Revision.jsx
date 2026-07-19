@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar';
 import {
   fetchRevisionQueue,
   fetchDetailedWeaknesses,
+  fetchUpsolvingQueue,
   getUserId,
 } from '../api/client';
 
@@ -16,9 +17,10 @@ const DIFFICULTY_LABELS = {
 };
 
 export default function Revision() {
-  const [activeTab, setActiveTab] = useState('recommendations');
+  const [activeTab, setActiveTab] = useState('daily-plan');
   const [recommendations, setRecommendations] = useState([]);
   const [weakTopics, setWeakTopics] = useState([]);
+  const [upsolveQueue, setUpsolveQueue] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -38,13 +40,15 @@ export default function Revision() {
         return;
       }
 
-      const [recs, topics] = await Promise.all([
+      const [recs, topics, upsolves] = await Promise.all([
         fetchRevisionQueue(userId, 20),
         fetchDetailedWeaknesses(userId),
+        fetchUpsolvingQueue(userId),
       ]);
 
       setRecommendations(recs || []);
       setWeakTopics(topics || []);
+      setUpsolveQueue(upsolves || []);
     } catch (err) {
       console.error(err);
       setError(
@@ -98,95 +102,148 @@ export default function Revision() {
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 border-b border-gray-800 pb-2">
           <button
-            onClick={() => setActiveTab('recommendations')}
-            className={`px-4 py-2 rounded text-sm ${
-              activeTab === 'recommendations'
-                ? 'bg-cyan-600'
-                : 'bg-gray-800 hover:bg-gray-700'
+            onClick={() => setActiveTab('daily-plan')}
+            className={`px-4 py-2 rounded text-sm font-semibold transition-colors ${
+              activeTab === 'daily-plan'
+                ? 'bg-cyan-600 text-white'
+                : 'bg-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            Recommendations
+            Revision Plan
+          </button>
+          <button
+            onClick={() => setActiveTab('upsolve-queue')}
+            className={`px-4 py-2 rounded text-sm font-semibold transition-colors ${
+              activeTab === 'upsolve-queue'
+                ? 'bg-cyan-600 text-white'
+                : 'bg-transparent text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            Contest Upsolving
           </button>
           <button
             onClick={() => setActiveTab('weak-topics')}
-            className={`px-4 py-2 rounded text-sm ${
+            className={`px-4 py-2 rounded text-sm font-semibold transition-colors ${
               activeTab === 'weak-topics'
-                ? 'bg-cyan-600'
-                : 'bg-gray-800 hover:bg-gray-700'
+                ? 'bg-cyan-600 text-white'
+                : 'bg-transparent text-gray-400 hover:text-gray-200'
             }`}
           >
-            Weak Topics
+            Weak Topics Drill
           </button>
         </div>
 
         {isLoading ? (
-          <p className="text-gray-400">Loading revision queue...</p>
-        ) : activeTab === 'recommendations' ? (
+          <p className="text-gray-400">Loading your data...</p>
+        ) : activeTab === 'daily-plan' ? (
           recommendations.length === 0 ? (
             <p className="text-gray-400">
               No revision recommendations yet. Solve problems and sync first.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {recommendations.map((item) => (
-                <div
-                  key={`${item.platform}-${item.problemId}`}
-                  className="rounded-xl border border-gray-800 bg-gray-900/40 p-5 space-y-3"
-                >
-                  <div>
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    <p className="text-xs text-gray-500 mt-1 uppercase font-mono">
-                      {item.platform} · {item.problemId}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <span className="px-2 py-1 rounded bg-gray-800 text-gray-300 font-medium">
-                      {DIFFICULTY_LABELS[item.difficulty] || item.difficulty || 'Medium'}
-                    </span>
-                    <span className={`px-2 py-1 rounded border font-bold ${
-                      item.priority === 'High' ? 'bg-red-950/40 text-red-300 border-red-900/30' :
-                      item.priority === 'Medium' ? 'bg-orange-950/40 text-orange-300 border-orange-900/30' :
-                      'bg-indigo-950/40 text-indigo-300 border-indigo-900/30'
-                    }`}>
-                      {(item.priority || 'Low').toUpperCase()} PRIORITY
-                    </span>
-                    <span className="px-2 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                      {item.reason}
-                    </span>
-                    <span className="px-2 py-1 rounded bg-teal-950/40 text-teal-300 border border-teal-900/30 font-medium">
-                      Est. Time: {item.estimatedRevisionTime}m
-                    </span>
-                    <span className="px-2 py-1 rounded bg-fuchsia-950/40 text-fuchsia-300 border border-fuchsia-900/30 font-medium">
-                      Confidence: {item.confidence}%
-                    </span>
-                    <span className="px-2 py-1 rounded bg-yellow-950/40 text-yellow-300 border border-yellow-900/30 font-bold">
-                      Deadline: {item.suggestedDeadline}
-                    </span>
-                  </div>
-                  {item.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {item.tags.slice(0, 4).map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] px-2 py-0.5 rounded bg-gray-950 border border-gray-800 text-gray-400"
+            <div className="space-y-8">
+              {['Today', 'Within 3 days', 'Next week'].map(deadline => {
+                const group = recommendations.filter(r => r.suggestedDeadline === deadline);
+                if (group.length === 0) return null;
+                return (
+                  <div key={deadline} className="space-y-4">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${deadline === 'Today' ? 'bg-red-500' : deadline === 'Within 3 days' ? 'bg-orange-500' : 'bg-cyan-500'}`}></span>
+                      Due {deadline} <span className="text-sm font-normal text-gray-500">({group.length} tasks)</span>
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {group.map((item) => (
+                        <div
+                          key={`${item.platform}-${item.problemId}`}
+                          className="rounded-xl border border-gray-800 bg-gray-900/40 p-5 flex flex-col justify-between"
                         >
-                          {tag.replace(/_/g, ' ')}
-                        </span>
+                          <div className="space-y-3 mb-4">
+                            <div>
+                              <div className="flex justify-between items-start mb-1">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                                  item.priority === 'High' ? 'bg-red-950/60 text-red-400 border border-red-900/50' :
+                                  item.priority === 'Medium' ? 'bg-orange-950/60 text-orange-400 border border-orange-900/50' :
+                                  'bg-indigo-950/60 text-indigo-400 border border-indigo-900/50'
+                                }`}>
+                                  {item.priority} PRIORITY
+                                </span>
+                                <span className="text-[10px] text-gray-500 uppercase font-mono bg-black px-1.5 py-0.5 rounded border border-gray-800">
+                                  {item.platform}
+                                </span>
+                              </div>
+                              <h3 className="font-bold text-lg text-white leading-tight mt-2">{item.title}</h3>
+                            </div>
+
+                            <p className="text-sm text-cyan-200 bg-cyan-950/30 p-2 rounded border border-cyan-900/40 leading-snug">
+                              <span className="font-bold text-cyan-500 mr-1">Why:</span>
+                              {item.reason}
+                            </p>
+
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              <span className="px-2 py-1 rounded bg-gray-800 text-gray-300 font-medium capitalize">
+                                {item.topic.replace(/_/g, ' ')}
+                              </span>
+                              <span className="px-2 py-1 rounded bg-gray-800 text-gray-300 font-medium">
+                                {DIFFICULTY_LABELS[item.difficulty] || item.difficulty || 'Medium'}
+                              </span>
+                              <span className="px-2 py-1 rounded bg-slate-900 text-slate-400 border border-slate-700 font-medium flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                {item.estimatedRevisionTime}m
+                              </span>
+                            </div>
+                          </div>
+
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center w-full gap-2 px-3 py-2 rounded bg-cyan-700 hover:bg-cyan-600 text-sm font-semibold transition-colors mt-auto"
+                          >
+                            Solve Problem
+                            <FiExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
                       ))}
                     </div>
-                  )}
-
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : activeTab === 'upsolve-queue' ? (
+          upsolveQueue.length === 0 ? (
+            <p className="text-gray-400">
+              No upsolving tasks. Participate in contests to populate this queue.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {upsolveQueue.map((item) => (
+                <div key={item.problemId} className="rounded-xl border border-gray-800 bg-gray-900/40 p-5 flex justify-between items-center group hover:border-gray-600 transition-colors">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 mb-1">
+                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                        item.reason.includes('Easiest') ? 'bg-red-950/60 text-red-400 border border-red-900/50' :
+                        item.reason.includes('Almost') ? 'bg-orange-950/60 text-orange-400 border border-orange-900/50' :
+                        'bg-purple-950/60 text-purple-400 border border-purple-900/50'
+                       }`}>
+                         {item.type}
+                       </span>
+                       <span className="text-[10px] font-mono px-2 py-0.5 bg-gray-800 text-gray-300 rounded border border-gray-700">
+                         {item.difficulty || '?'}
+                       </span>
+                    </div>
+                    <h3 className="font-bold text-lg text-white group-hover:text-cyan-400 transition-colors">{item.title}</h3>
+                    <p className="text-sm text-gray-400 mt-2 line-clamp-1">{item.reason}</p>
+                  </div>
                   <a
-                    href={item.url}
+                    href={item.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded bg-cyan-700 hover:bg-cyan-600 text-sm font-semibold transition-colors mt-2"
+                    className="p-3 bg-gray-800 rounded-full hover:bg-cyan-700 hover:text-white transition-colors text-gray-400"
                   >
-                    Revise Problem
-                    <FiExternalLink className="w-4 h-4" />
+                    <FiExternalLink className="w-5 h-5" />
                   </a>
                 </div>
               ))}

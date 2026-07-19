@@ -62,7 +62,31 @@ export class UpsolvingService {
       const tags = sub.tags?.map(normalizeTag) ?? ['general'];
       const maxWeakness = Math.max(...tags.map(t => weaknessMap.get(t) ?? 0));
       
-      const priorityScore = 150 + (maxWeakness * 0.5) - (sub.difficulty ? Math.max(0, sub.difficulty - 1500) * 0.05 : 0);
+      let priorityScore = 0;
+      let reason = 'Missed in recent contest';
+      
+      const isAlmostSolved = sub.verdict.toLowerCase().includes('wrong answer') || sub.verdict.toLowerCase().includes('time limit');
+      
+      // Missed easiest
+      if (sub.difficulty && sub.difficulty <= 1200) {
+        priorityScore = 200 - (sub.difficulty * 0.05); // Highest priority to easiest missed
+        reason = `Missed Easiest: You should have solved this ${sub.difficulty} rated problem.`;
+      } 
+      // Almost solved
+      else if (isAlmostSolved) {
+        priorityScore = 180 + (maxWeakness * 0.2);
+        reason = `Almost Solved: You failed on ${sub.verdict}, fix the edge cases.`;
+      }
+      // High learning value (Weak topic)
+      else if (maxWeakness > 60) {
+        priorityScore = 150 + (maxWeakness * 0.5);
+        reason = `High Learning Value: Crucial for improving your weakness in ${tags[0].replace(/_/g, ' ')}.`;
+      }
+      // High rating gain
+      else {
+        priorityScore = 100 + (sub.difficulty ? sub.difficulty * 0.05 : 0);
+        reason = `High Rating Gain: Pushing your limits with ${sub.difficulty ?? 'unknown'} rated problem.`;
+      }
       
       queue.push({
         problemId,
@@ -71,7 +95,7 @@ export class UpsolvingService {
         difficulty: sub.difficulty,
         tags: sub.tags,
         sourceUrl: `https://codeforces.com/contest/${problemId.split('-')[0]}/problem/${problemId.split('-')[1]}`,
-        reason: 'Missed in recent contest',
+        reason,
         priorityScore,
         type: 'Contest Miss'
       });

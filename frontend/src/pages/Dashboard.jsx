@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import SiteNavbar from '../components/SiteNavbar';
@@ -266,7 +267,12 @@ export default function Dashboard() {
                   <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
                     <FaChartPie />
                   </div>
-                  <h3 className="text-lg font-bold text-white">Weak Topics</h3>
+                  <div className="flex-1 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-white">Weak Topics</h3>
+                    <Link to="/analytics" className="text-xs font-semibold text-red-400 hover:text-red-300 px-2 py-1 bg-red-950/40 rounded transition-colors">
+                      Full Analytics
+                    </Link>
+                  </div>
                 </div>
                 
                 {isLoading ? (
@@ -298,9 +304,14 @@ export default function Dashboard() {
                   <div className="w-8 h-8 rounded-lg bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400">
                     <FaLightbulb />
                   </div>
-                  <h3 className="text-lg font-bold text-white">
-                    Revision Recommendations
-                  </h3>
+                  <div className="flex-1 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-white">
+                      Revision Plan & Upsolving
+                    </h3>
+                    <Link to="/revision" className="text-xs font-semibold text-fuchsia-400 hover:text-fuchsia-300 px-2 py-1 bg-fuchsia-950/40 rounded transition-colors">
+                      View All
+                    </Link>
+                  </div>
                 </div>
                 
                 {isLoading ? (
