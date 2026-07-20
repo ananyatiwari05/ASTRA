@@ -194,13 +194,13 @@ const Landing = () => {
            <h3 className="text-2xl font-bold mb-4 text-white">Your Coding Command Center</h3>
            <p className="text-slate-400 text-sm mb-8">Get a bird's eye view of your entire competitive programming journey. Track your global rating, total problems solved, and daily streaks across LeetCode, Codeforces, and CodeChef instantly.</p>
            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-900 border border-slate-700/50 p-4 rounded-xl flex items-center gap-4">
-                <div className="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center"><FaChartBar size={20}/></div>
-                <div><p className="text-[10px] text-slate-400">Total Solved</p><p className="text-xl font-bold">1,248</p></div>
+              <div className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-4 rounded-xl flex items-center justify-between shadow-lg hover:bg-slate-800/40 transition-colors">
+                <div><p className="text-[10px] font-mono text-slate-400 uppercase">Total Solved</p><p className="text-2xl font-bold text-white mt-1">1,248</p></div>
+                <div className="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.3)]"><FaChartBar size={16}/></div>
               </div>
-              <div className="bg-slate-900 border border-slate-700/50 p-4 rounded-xl flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center"><FaBolt size={20}/></div>
-                <div><p className="text-[10px] text-slate-400">Current Streak</p><p className="text-xl font-bold">45 Days</p></div>
+              <div className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-4 rounded-xl flex items-center justify-between shadow-lg hover:bg-slate-800/40 transition-colors">
+                <div><p className="text-[10px] font-mono text-slate-400 uppercase">Current Streak</p><p className="text-2xl font-bold text-white mt-1">45 Days</p></div>
+                <div className="w-10 h-10 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.3)]">🔥</div>
               </div>
            </div>
         </motion.div>
@@ -216,13 +216,13 @@ const Landing = () => {
            <h3 className="text-2xl font-bold mb-4 text-white">Master DSA with Structured Sheets</h3>
            <p className="text-slate-400 text-sm mb-8">Stop getting lost in endless problem sets. We natively integrate popular tracking sheets so you can mark problems as solved, flag them for revision, and watch your completion bar fill up.</p>
            <div className="space-y-4">
-             <div className="bg-slate-900 border border-slate-700/50 p-4 rounded-xl">
-               <div className="flex justify-between items-center mb-2"><span className="font-semibold text-sm">Striver's A2Z DSA Sheet</span><span className="text-xs text-indigo-400">45%</span></div>
-               <div className="w-full bg-slate-800 rounded-full h-2"><motion.div initial={{ width: 0 }} whileInView={{ width: "45%" }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut" }} className="bg-indigo-500 h-2 rounded-full"></motion.div></div>
+             <div className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-5 rounded-xl shadow-lg hover:border-indigo-500/30 transition-colors">
+               <div className="flex justify-between items-center mb-3"><span className="font-bold text-white">Striver's A2Z DSA Sheet</span><span className="text-sm font-bold text-indigo-400 bg-indigo-900/30 px-2 py-0.5 rounded-lg border border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.2)]">45%</span></div>
+               <div className="w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden"><motion.div initial={{ width: 0 }} whileInView={{ width: "45%" }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut" }} className="bg-indigo-500 h-2.5 rounded-full shadow-[0_0_10px_currentColor]"></motion.div></div>
              </div>
-             <div className="bg-slate-900 border border-slate-700/50 p-4 rounded-xl">
-               <div className="flex justify-between items-center mb-2"><span className="font-semibold text-sm">Blind 75</span><span className="text-xs text-purple-400">80%</span></div>
-               <div className="w-full bg-slate-800 rounded-full h-2"><motion.div initial={{ width: 0 }} whileInView={{ width: "80%" }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut", delay: 0.15 }} className="bg-purple-500 h-2 rounded-full"></motion.div></div>
+             <div className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-5 rounded-xl shadow-lg hover:border-purple-500/30 transition-colors">
+               <div className="flex justify-between items-center mb-3"><span className="font-bold text-white">Blind 75</span><span className="text-sm font-bold text-purple-400 bg-purple-900/30 px-2 py-0.5 rounded-lg border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.2)]">80%</span></div>
+               <div className="w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden"><motion.div initial={{ width: 0 }} whileInView={{ width: "80%" }} viewport={{ once: true }} transition={{ duration: 1, ease: "easeOut", delay: 0.15 }} className="bg-purple-500 h-2.5 rounded-full shadow-[0_0_10px_currentColor]"></motion.div></div>
              </div>
            </div>
         </motion.div>
@@ -237,14 +237,14 @@ const Landing = () => {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full">
            <h3 className="text-2xl font-bold mb-4 text-white">Your Ultimate Contest Calendar</h3>
            <p className="text-slate-400 text-sm mb-8">Keep track of every upcoming contest from Codeforces, LeetCode, CodeChef, and AtCoder. Set reminders, view starting times in your local timezone, and jump straight to the registration page.</p>
-           <div className="space-y-3">
-              <div className="flex items-center justify-between bg-slate-900 border border-slate-700/50 p-3 rounded-lg">
-                <div className="flex items-center gap-3"><SiCodeforces className="text-red-500 text-xl"/><span className="text-sm font-semibold">Codeforces Round 953</span></div>
-                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">In 2h 45m</span>
+           <div className="space-y-4">
+              <div className="flex items-center justify-between bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg hover:border-slate-700/80 transition-colors">
+                <div className="flex items-center gap-4"><SiCodeforces className="text-slate-300 text-2xl"/><span className="text-base font-bold text-white">Codeforces Round 953</span></div>
+                <span className="text-xs font-bold text-indigo-400 bg-indigo-900/30 px-3 py-1.5 rounded-lg border border-indigo-800/50">In 2h 45m</span>
               </div>
-              <div className="flex items-center justify-between bg-slate-900 border border-slate-700/50 p-3 rounded-lg">
-                <div className="flex items-center gap-3"><SiLeetcode className="text-yellow-500 text-xl"/><span className="text-sm font-semibold">Weekly Contest 398</span></div>
-                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">Sun, 8:00 AM</span>
+              <div className="flex items-center justify-between bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-4 rounded-xl shadow-lg hover:border-slate-700/80 transition-colors">
+                <div className="flex items-center gap-4"><SiLeetcode className="text-slate-300 text-2xl"/><span className="text-base font-bold text-white">Weekly Contest 398</span></div>
+                <span className="text-xs font-bold text-slate-400 bg-[#0a0f1c] px-3 py-1.5 rounded-lg border border-slate-700/80">Sun, 8:00 AM</span>
               </div>
            </div>
         </motion.div>
@@ -260,21 +260,21 @@ const Landing = () => {
            <div className="w-1/2">
              <h3 className="text-2xl font-bold mb-4 text-white">Know Your Weaknesses</h3>
              <p className="text-slate-400 text-sm mb-6">Our system analyzes your submission history to generate visual radar charts. Instantly see if you need to practice Dynamic Programming, Graphs, or Trees, and track your improvement over time.</p>
-             <ul className="text-xs text-slate-500 space-y-2">
-               <li className="flex items-center gap-2"><FaCheckCircle className="text-indigo-400"/> Topic-wise accuracy tracking</li>
-               <li className="flex items-center gap-2"><FaCheckCircle className="text-indigo-400"/> Difficulty level breakdown</li>
+             <ul className="text-sm font-medium text-slate-400 space-y-3">
+               <li className="flex items-center gap-3"><FaCheckCircle className="text-indigo-400"/> Topic-wise accuracy tracking</li>
+               <li className="flex items-center gap-3"><FaCheckCircle className="text-indigo-400"/> Difficulty level breakdown</li>
              </ul>
            </div>
            <div className="w-1/2 flex justify-center">
-              <motion.div initial={{ rotate: -8, scale: 0.9, opacity: 0 }} animate={{ rotate: 0, scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: "easeOut" }} className="w-48 h-48 rounded-full border border-slate-700/50 flex items-center justify-center relative bg-slate-900/50">
-                 {/* Fake radar chart */}
-                 <svg viewBox="0 0 100 100" className="w-full h-full p-4 text-slate-600">
-                   <polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="none" stroke="currentColor" strokeWidth="1" />
-                   <polygon points="50,25 75,40 75,60 50,75 25,60 25,40" fill="none" stroke="currentColor" strokeWidth="1" />
-                   <motion.polygon initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.2 }} style={{ transformOrigin: '50px 50px' }} points="50,15 80,45 60,80 40,70 20,40" fill="#a855f7" fillOpacity="0.4" stroke="#a855f7" strokeWidth="2" />
-                 </svg>
-                 <span className="absolute top-2 text-[10px] text-slate-400">Graphs</span>
-                 <span className="absolute bottom-2 text-[10px] text-slate-400">DP</span>
+              <motion.div initial={{ rotate: -8, scale: 0.9, opacity: 0 }} animate={{ rotate: 0, scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: "easeOut" }} className="w-56 h-56 rounded-2xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-sm flex flex-col items-center justify-center relative p-4 shadow-xl">
+                 {/* Fake Topic Stats Bar Chart */}
+                 <div className="w-full h-full flex items-end justify-around gap-2 px-2 pb-4">
+                   <div className="w-6 h-[40%] bg-indigo-500 rounded-t-sm relative"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-slate-400">DP</span></div>
+                   <div className="w-6 h-[70%] bg-emerald-500 rounded-t-sm relative"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-slate-400">Graph</span></div>
+                   <div className="w-6 h-[20%] bg-red-500 rounded-t-sm relative"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-slate-400">Tree</span></div>
+                   <div className="w-6 h-[50%] bg-indigo-500 rounded-t-sm relative"><span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-slate-400">Math</span></div>
+                 </div>
+                 <div className="w-full border-t border-slate-800 mt-2 pt-2 text-center text-[10px] font-mono text-slate-500 uppercase">Success Rate</div>
               </motion.div>
            </div>
         </motion.div>
@@ -289,11 +289,27 @@ const Landing = () => {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full">
            <h3 className="text-2xl font-bold mb-4 text-white">Never Forget A Concept</h3>
            <p className="text-slate-400 text-sm mb-8">Utilize spaced repetition for competitive programming. ASTRA automatically flags problems you struggled with and reminds you to solve them again when you are statistically most likely to forget the approach.</p>
-           <div className="bg-slate-900 border border-slate-700/50 p-5 rounded-xl text-center">
-             <motion.div animate={{ rotate: [0, -15, 15, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }} className="w-12 h-12 bg-fuchsia-500/20 text-fuchsia-400 rounded-full flex items-center justify-center mx-auto mb-3"><FaSyncAlt size={20}/></motion.div>
-             <p className="text-sm font-semibold text-white mb-1">3 Problems Due for Revision</p>
-             <p className="text-xs text-slate-400 mb-4">Focus on: Sliding Window, Binary Search</p>
-             <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-md text-xs font-semibold transition-colors">Start Revision Session</motion.button>
+           <div className="bg-slate-900/40 border border-slate-800/80 backdrop-blur-sm p-6 rounded-xl text-left shadow-lg hover:border-slate-700/80 transition-colors flex flex-col sm:flex-row items-center gap-6">
+             <div className="flex-1 w-full">
+               <div className="flex items-center gap-2 mb-3">
+                 <span className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_currentColor]"></span>
+                 <p className="text-base font-bold text-white">Due Today <span className="text-sm font-normal text-slate-400">(3 tasks)</span></p>
+               </div>
+               <div className="bg-[#0a0f1c]/60 border border-slate-800/80 rounded-lg p-3">
+                 <div className="flex justify-between items-start mb-1">
+                   <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-red-950/60 text-red-400 border border-red-900/50">High Priority</span>
+                   <span className="text-[10px] text-slate-400 uppercase font-mono">Leetcode</span>
+                 </div>
+                 <h4 className="font-bold text-white mt-2">Maximum Subarray</h4>
+                 <div className="flex gap-2 mt-3 text-xs">
+                   <span className="px-2 py-1 rounded bg-slate-800/50 text-slate-300 font-medium">Arrays</span>
+                   <span className="px-2 py-1 rounded bg-slate-800/50 text-slate-300 font-medium">Medium</span>
+                 </div>
+               </div>
+             </div>
+             <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="w-full sm:w-auto whitespace-nowrap px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)]">
+               Solve Now
+             </motion.button>
            </div>
         </motion.div>
       )
