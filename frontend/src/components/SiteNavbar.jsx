@@ -16,14 +16,40 @@ export default function SiteNavbar() {
             <span className="text-xl font-bold tracking-wide text-white">ASTRA</span>
           </Link>
         </motion.div>
-        
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
-          <Link to="/" className={`transition-colors ${location.pathname === '/' ? 'text-white' : 'hover:text-white'}`}>Home</Link>
-          <Link to="/dashboard" className={`transition-colors ${location.pathname === '/dashboard' ? 'text-white' : 'hover:text-white'}`}>Dashboard</Link>
-          <Link to="/sheets" className={`transition-colors ${location.pathname.startsWith('/sheets') ? 'text-white' : 'hover:text-white'}`}>Sheets</Link>
-          <Link to="/analytics" className={`transition-colors ${location.pathname === '/analytics' ? 'text-white' : 'hover:text-white'}`}>Analytics</Link>
-          <Link to="/contest-radar" className={`transition-colors ${location.pathname === '/contest-radar' ? 'text-white' : 'hover:text-white'}`}>Contest Radar</Link>
-          <Link to="/revision" className={`transition-colors ${location.pathname === '/revision' ? 'text-white' : 'hover:text-white'}`}>Revision</Link>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="hidden lg:flex items-center gap-2 text-sm font-medium text-slate-300">
+          {[
+            { path: '/', label: 'Home', exact: true },
+            { path: '/dashboard', label: 'Dashboard' },
+            { path: '/sheets', label: 'Sheets', startsWith: true },
+            { path: '/analytics', label: 'Analytics' },
+            { path: '/contest-radar', label: 'Contest Radar' },
+            { path: '/revision', label: 'Revision' },
+          ].map((link) => {
+            const isActive = link.exact
+              ? location.pathname === link.path
+              : link.startsWith
+                ? location.pathname.startsWith(link.path)
+                : location.pathname === link.path;
+
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`relative px-4 py-2 rounded-full transition-colors ${
+                  isActive ? 'text-white' : 'hover:text-white'
+                }`}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="navbar-active-pill"
+                    className="absolute inset-0 bg-indigo-500/20 rounded-full border border-indigo-500/30"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{link.label}</span>
+              </Link>
+            );
+          })}
         </motion.div>
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
