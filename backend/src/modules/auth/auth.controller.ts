@@ -29,7 +29,7 @@ export class AuthController {
     const result = await this.authService.googleLogin(req.user);
 
     return res.redirect(
-      `http://localhost:5173/oauth-success?token=${result.access_token}`,
+      `${process.env.FRONTEND_URL}/oauth-success?token=${result.access_token}`,
     );
   }
 
